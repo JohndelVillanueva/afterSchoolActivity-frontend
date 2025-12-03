@@ -10,6 +10,7 @@ interface AttendanceRecord {
   time: string;
   status: "present" | "absent";
   rfid?: string;
+  processedBy?: string | null;
 }
 
 const RECORDS_PER_PAGE = 12;
@@ -111,6 +112,7 @@ const ReportsPage: React.FC = () => {
     const searchLower = search.toLowerCase();
     const recordDate = formatDate(record.date).toLowerCase();
     const recordTime = record.time ? formatTime(record.time).toLowerCase() : "";
+    const recordProcessedBy = record.processedBy ? record.processedBy.toLowerCase() : "";
 
     const matchesSearch =
       record.studentName.toLowerCase().includes(searchLower) ||
@@ -119,6 +121,7 @@ const ReportsPage: React.FC = () => {
       record.status.toLowerCase().includes(searchLower) ||
       recordDate.includes(searchLower) ||
       recordTime.includes(searchLower) ||
+      recordProcessedBy.includes(searchLower) || // Add search for processedBy
       record.date.includes(search); // Also search raw date format
 
     const matchesStart = !startDate || record.date >= startDate;
@@ -135,6 +138,12 @@ const ReportsPage: React.FC = () => {
     const statusOrder = { 'present': 1, 'absent': 2 };
     aVal = statusOrder[a.status as keyof typeof statusOrder] || 3;
     bVal = statusOrder[b.status as keyof typeof statusOrder] || 3;
+  }
+  
+  // Special handling for processedBy to handle null values
+  if (sortBy === 'processedBy') {
+    aVal = a.processedBy || '';
+    bVal = b.processedBy || '';
   }
   
   if (sortDir === 'asc') {
@@ -159,6 +168,7 @@ const ReportsPage: React.FC = () => {
       "Status",
       "Date",
       "Time",
+      "Processed By", // Add this column
     ];
     const rows = sortedRecords.map((record) => [
       record.studentName,
@@ -167,6 +177,7 @@ const ReportsPage: React.FC = () => {
       record.status.charAt(0).toUpperCase() + record.status.slice(1),
       formatDate(record.date),
       record.time ? formatTime(record.time) : "",
+      record.processedBy || "System", // Add this field
     ]);
     const csvContent = [headers, ...rows]
       .map((row) =>
@@ -338,7 +349,7 @@ const ReportsPage: React.FC = () => {
                     </div>
                     <input
                       type="text"
-                      placeholder="Search students, RFID, activities, status, date, time..."
+                      placeholder="Search students, RFID, activities, status, date, time, processed by..."
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
                       className="block w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50/50 transition-all duration-200"
@@ -494,12 +505,23 @@ const ReportsPage: React.FC = () => {
                             </span>
                           </div>
                         </th>
+                        <th
+                          className="px-6 py-4 text-left font-semibold text-gray-700 cursor-pointer hover:bg-gray-100/50 transition-colors group"
+                          onClick={() => handleSort("processedBy")}
+                        >
+                          <div className="flex items-center space-x-2">
+                            <span>Processed By</span>
+                            <span className="text-gray-400 group-hover:text-gray-600 transition-colors">
+                              {getSortIcon("processedBy")}
+                            </span>
+                          </div>
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                       {attendanceRecords.length === 0 ? (
                         <tr>
-                          <td colSpan={4} className="px-6 py-12 text-center">
+                          <td colSpan={5} className="px-6 py-12 text-center">
                             <div className="flex flex-col items-center justify-center text-gray-500">
                               <svg
                                 className="w-16 h-16 mb-4 text-gray-300"
@@ -525,7 +547,7 @@ const ReportsPage: React.FC = () => {
                         </tr>
                       ) : paginatedRecords.length === 0 ? (
                         <tr>
-                          <td colSpan={4} className="px-6 py-12 text-center">
+                          <td colSpan={5} className="px-6 py-12 text-center">
                             <div className="flex flex-col items-center justify-center text-gray-500">
                               <svg
                                 className="w-16 h-16 mb-4 text-gray-300"
@@ -607,6 +629,11 @@ const ReportsPage: React.FC = () => {
                                 {record.time
                                   ? formatTime(record.time)
                                   : "No time recorded"}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="text-sm text-gray-700">
+                                {record.processedBy || "System"}
                               </div>
                             </td>
                           </tr>

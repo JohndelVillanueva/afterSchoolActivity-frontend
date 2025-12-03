@@ -31,7 +31,7 @@ const PRIMARY_LIGHT = 'blue-50'; // Light background accent
 const TEXT_COLOR = 'gray-800'; // Dark text for readability
 const BG_COLOR = 'gray-50'; // Soft background
 
-const PaymentPage = () => {
+const AttendancePage: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false); // New: mobile sidebar state
   const [studentId, setStudentId] = useState('');
@@ -149,52 +149,87 @@ const PaymentPage = () => {
     fetchAttendance();
   }, []);
 
-  const handleMarkAttendance = async (student: Student, status: 'present' | 'absent') => {
-    setErrorMessage(null);
+const handleMarkAttendance = async (student: Student, status: 'present' | 'absent') => {
+  setErrorMessage(null);
 
-    if (!selectedActivity) {
-      setErrorMessage('Please select an activity');
-      return;
+  if (!selectedActivity) {
+    setErrorMessage('Please select an activity');
+    return;
+  }
+
+  const activity = activities.find(a => a.id.toString() === selectedActivity);
+  if (!activity) {
+    setErrorMessage('Activity not found');
+    return;
+  }
+
+  // Get logged in user from localStorage
+  let processedBy = 'System'; // Default fallback
+  
+  try {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      const user = JSON.parse(userData);
+      console.log('[DEBUG] User data from localStorage:', user);
+      
+      // Your user object structure might be different, adjust based on your login response
+      // Try to get the user's name from different possible field names
+      const firstName = user.firstName || user.fname || user.first_name || user.name?.split(' ')[0] || '';
+      const lastName = user.lastName || user.lname || user.last_name || user.name?.split(' ')[1] || '';
+      
+      if (firstName || lastName) {
+        processedBy = `${firstName} ${lastName}`.trim();
+      } else if (user.username) {
+        processedBy = user.username;
+      } else if (user.email) {
+        processedBy = user.email.split('@')[0]; // Use email username part
+      }
+      
+      console.log('[DEBUG] Processed by:', processedBy);
     }
+  } catch (error) {
+    console.error('Error parsing user data from localStorage:', error);
+    // Keep 'System' as default
+  }
 
-    const activity = activities.find(a => a.id.toString() === selectedActivity);
-    if (!activity) {
-      setErrorMessage('Activity not found');
-      return;
-    }
+  // Call backend to mark attendance and deduct balance
+  const response = await fetch(`${API_BASE_URL}/markAttendanceAndDeduct`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ 
+      studentId: student.id, 
+      activityId: activity.id, 
+      status,
+      processedBy, // Pass the user's name
+    }), 
+  });
+  
+  const result = await response.json();
+  if (!result.success) {
+    setErrorMessage(result.error || 'Failed to mark attendance');
+    return;
+  }
 
-    // Call backend to mark attendance and deduct balance
-    const response = await fetch(`${API_BASE_URL}/markAttendanceAndDeduct`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ studentId: student.id, activityId: activity.id, status }), 
-    });
-    const result = await response.json();
-    if (!result.success) {
-      setErrorMessage(result.error || 'Failed to mark attendance');
-      return;
-    }
-
-    // Add new attendance record to local state
-    const today = new Date().toISOString().split('T')[0];
-    const newRecord: AttendanceRecord = {
-      id: String(student.id),
-      studentName: `${student.fname} ${student.mname} ${student.lname}`,
-      activity: activity.name,
-      date: today,
-      time: new Date().toLocaleTimeString(),
-      status: status,
-      rfid: student.rfid
-    };
-
-    setAttendanceRecords(prev => [...prev, newRecord]);
-    setShowSuccess(true);
-    fetchStudents(selectedActivity); 
-    fetchAttendance();
-    setErrorMessage(null);
-
-    setTimeout(() => setShowSuccess(false), 3000);
+  // Add new attendance record to local state
+  const today = new Date().toISOString().split('T')[0];
+  const newRecord: AttendanceRecord = {
+    id: String(student.id),
+    studentName: `${student.fname} ${student.mname} ${student.lname}`,
+    activity: activity.name,
+    date: today,
+    time: new Date().toLocaleTimeString(),
+    status: status,
+    rfid: student.rfid
   };
+
+  setAttendanceRecords(prev => [...prev, newRecord]);
+  setShowSuccess(true);
+  fetchStudents(selectedActivity); 
+  fetchAttendance();
+  setErrorMessage(null);
+
+  setTimeout(() => setShowSuccess(false), 3000);
+};
 
   const handleActivityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newActivityId = e.target.value;
@@ -635,4 +670,4 @@ const PaymentPage = () => {
   );
 };
 
-export default PaymentPage;
+export default AttendancePage

@@ -3,6 +3,7 @@ import Sidebar from "../../components/SideBar";
 import { API_BASE_URL } from "../../src/types/types";
 import toast from "react-hot-toast";
 import { Toaster } from "react-hot-toast"; // Add Toaster import
+import ViewEditStudentModal from "../../modals/ViewEditStudentModal"; // Import the modal
 
 // --- PROFESSIONAL DESIGN CONSTANTS ---
 const PRIMARY_COLOR = "blue-600"; // Primary accent color
@@ -59,6 +60,10 @@ const StudentsPage: React.FC = () => {
   const [formStep, setFormStep] = useState<"rfid" | "details">("rfid");
   const [existingStudent, setExistingStudent] = useState<Student | null>(null);
   const [checkingRfid, setCheckingRfid] = useState(false);
+  
+  // Add state for View/Edit modal
+  const [showViewEditModal, setShowViewEditModal] = useState(false);
+  const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
 
   const handleSidebarToggle = (collapsed: boolean) => {
     setSidebarCollapsed(collapsed);
@@ -119,6 +124,24 @@ const StudentsPage: React.FC = () => {
       return matchesSearch && matchesStatus;
     });
   }, [students, search, statusFilter]);
+
+  // Add function to handle viewing/editing a student
+  const handleViewEditStudent = (studentId: number) => {
+    setSelectedStudentId(studentId);
+    setShowViewEditModal(true);
+  };
+
+  // Add function to handle modal close
+  const handleViewEditModalClose = () => {
+    setShowViewEditModal(false);
+    setSelectedStudentId(null);
+  };
+
+  // Add function to refresh students after update
+  const handleStudentUpdateSuccess = () => {
+    fetchStudents(); // Refresh the student list
+    handleViewEditModalClose();
+  };
 
   // Updated Mobile Top Bar with professional styling
   const MobileTopBar = (
@@ -379,19 +402,6 @@ const StudentsPage: React.FC = () => {
     setFormError(null);
   };
 
-  // Improved Status Badge styling
-  // const StatusBadge = ({ enrolled }: { enrolled?: boolean }) => (
-  //   <span
-  //     className={`px-3 py-1 text-xs font-semibold rounded-full shadow-sm ${
-  //       enrolled
-  //         ? 'bg-green-100 text-green-700 border border-green-200'
-  //         : 'bg-yellow-100 text-yellow-700 border border-yellow-200'
-  //     }`}
-  //   >
-  //     {enrolled ? 'Enrolled' : 'Pending'}
-  //   </span>
-  // );
-
   return (
     <div className={`min-h-screen flex bg-${BG_COLOR}`}>
       <Sidebar
@@ -415,6 +425,16 @@ const StudentsPage: React.FC = () => {
           },
         }}
       />
+
+      {/* Add the ViewEditStudentModal component */}
+      {showViewEditModal && selectedStudentId && (
+        <ViewEditStudentModal
+          isOpen={showViewEditModal}
+          onClose={handleViewEditModalClose}
+          studentId={selectedStudentId}
+          onUpdateSuccess={handleStudentUpdateSuccess}
+        />
+      )}
 
       <div
         className={`flex-1 min-h-screen transition-all duration-300 ease-in-out ${
@@ -517,12 +537,12 @@ const StudentsPage: React.FC = () => {
                       >
                         Sessions (A/P)
                       </th>
-                      {/* <th className={`px-6 py-3 text-left text-xs font-semibold text-${TEXT_COLOR} uppercase tracking-wider`}>Status</th> */}
-                      {/* <th
-                        className={`px-6 py-3 text-right text-xs font-semibold text-${TEXT_COLOR} uppercase tracking-wider`}
+                      {/* Add Actions column */}
+                      <th
+                        className={`px-6 py-3 text-left text-xs font-semibold text-${TEXT_COLOR} uppercase tracking-wider`}
                       >
                         Actions
-                      </th> */}
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-100">
@@ -546,7 +566,6 @@ const StudentsPage: React.FC = () => {
                               >
                                 {student.fname} {student.lname}
                               </div>
-                              {/* <div className="text-xs text-gray-500">ID: {student.id}</div> */}
                             </div>
                           </div>
                         </td>
@@ -575,17 +594,35 @@ const StudentsPage: React.FC = () => {
                             {student.sessionsPurchased ?? "0"}
                           </span>
                         </td>
-                        {/* <td className="px-6 py-4 whitespace-nowrap">
-                          <StatusBadge enrolled={student.isEnrolledInAfterSchool} />
-                        </td> */}
-                        {/* <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        {/* Add Actions cell with View/Edit button */}
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <button
-                            className={`text-${PRIMARY_COLOR} hover:text-blue-800 transition-colors p-2 rounded-md hover:bg-gray-100`}
+                            onClick={() => handleViewEditStudent(student.id)}
+                            className={`text-${PRIMARY_COLOR} hover:text-blue-800 transition-colors p-2 rounded-md hover:bg-gray-100 flex items-center gap-1`}
                             title="View/Edit Student Details"
                           >
-                            View/Edit
+                            <svg 
+                              className="w-4 h-4" 
+                              fill="none" 
+                              stroke="currentColor" 
+                              viewBox="0 0 24 24"
+                            >
+                              <path 
+                                strokeLinecap="round" 
+                                strokeLinejoin="round" 
+                                strokeWidth={2} 
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" 
+                              />
+                              <path 
+                                strokeLinecap="round" 
+                                strokeLinejoin="round" 
+                                strokeWidth={2} 
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" 
+                              />
+                            </svg>
+                            <span>View/Edit</span>
                           </button>
-                        </td> */}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -605,7 +642,7 @@ const StudentsPage: React.FC = () => {
             />
 
             {/* Modal */}
-            <div className="relative bg-white rounded-lg shadow-xl w-full max-w-2xl overflow-hidden">
+            <div className="relative bg-black rounded-lg shadow-xl w-full max-w-2xl overflow-hidden">
               {/* Header */}
               <div className="border-b border-gray-200 px-8 py-6">
                 <div className="flex items-start justify-between">

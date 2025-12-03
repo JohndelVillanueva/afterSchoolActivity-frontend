@@ -1,45 +1,62 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import CreateSportModal from "../modals/CreateSportModal";
-import type { Activity } from "../src/types/types";
-import { API_BASE_URL } from '../src/types/types';
+import type { Activity} from "../src/types/types";
+import { API_BASE_URL } from "../src/types/types";
+import EditSportModal from "../modals/EditSportModal";
 
 interface MainContentProps {
   setActiveCategory: React.Dispatch<React.SetStateAction<string>>;
   filteredActivities: Activity[];
   showCreateModal: boolean;
   setShowCreateModal: React.Dispatch<React.SetStateAction<boolean>>;
-  handleCreateSport: (newActivity: Activity) => void;
-  onActivityClick?: (activity: Activity) => void; // New prop for handling clicks
-  sidebarCollapsed?: boolean; // New prop for sidebar state
+  handleCreateSport: () => void; // Changed to no arguments
+  onActivityClick?: (activity: Activity) => void;
+  sidebarCollapsed?: boolean;
   success?: string | null;
   error?: string | null;
   setSuccess?: React.Dispatch<React.SetStateAction<string | null>>;
   setError?: React.Dispatch<React.SetStateAction<string | null>>;
+  showEditModal: boolean;
+  setShowEditModal: (show: boolean) => void;
+  selectedSport: Activity | null;
+  handleEditSport: (sport: Activity) => void;
+  handleUpdateSport: (updatedSport: Activity) => void;
 }
 
 const MainContent: React.FC<MainContentProps> = ({
   filteredActivities,
   showCreateModal,
   setShowCreateModal,
-  handleCreateSport,
-  onActivityClick, // Destructure the new prop
-  sidebarCollapsed = false, // Default to false
+  handleCreateSport, // Now this should work without arguments
+  onActivityClick,
+  // sidebarCollapsed = false,
   success,
   error,
   setSuccess,
   setError,
+  handleEditSport,
+  // These props are declared but not used in this component directly
+  showEditModal,
+  setShowEditModal,
+  selectedSport,
+  handleUpdateSport,
+  setActiveCategory, // Add this since it's in the interface
 }) => {
   const navigate = useNavigate();
 
   const handleActivityClick = (activity: Activity) => {
     if (onActivityClick) {
-      // Use the parent component's click handler if provided
       onActivityClick(activity);
     } else {
-      // Fallback to direct navigation (backward compatibility)
       navigate(`/sports/${activity.name}`, { state: { activity } });
     }
+  };
+
+  // Prevent event propagation for edit button clicks
+  const handleEditClick = (e: React.MouseEvent, activity: Activity) => {
+    e.stopPropagation(); // Prevent triggering the parent click
+    handleEditSport(activity);
   };
 
   return (
@@ -90,6 +107,7 @@ const MainContent: React.FC<MainContentProps> = ({
           )}
         </div>
       )}
+      
       {/* Activities Grid */}
       <main className="p-3 md:p-6 bg-white min-h-[60vh]">
         {filteredActivities.length > 0 ? (
@@ -97,9 +115,31 @@ const MainContent: React.FC<MainContentProps> = ({
             {filteredActivities.map((activity) => (
               <div
                 key={activity.id}
-                className="group cursor-pointer"
+                className="group cursor-pointer relative" // Added relative for positioning
                 onClick={() => handleActivityClick(activity)}
               >
+                {/* Edit Icon Button - positioned at top right of card */}
+                <button
+                  onClick={(e) => handleEditClick(e, activity)}
+                  className="absolute top-2 right-2 p-2 bg-white/80 hover:bg-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-blue-500 z-10 shadow-sm hover:shadow-md"
+                  aria-label={`Edit ${activity.name}`}
+                  title="Edit sport"
+                >
+                  <svg 
+                    className="w-4 h-4 text-gray-600 hover:text-blue-600" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth={2} 
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" 
+                    />
+                  </svg>
+                </button>
+
                 <div className="h-full flex flex-col border border-gray-100 hover:border-gray-200 p-3 transition-colors rounded-lg">
                   <div className="aspect-[4/3] bg-gray-50 mb-3 flex items-center justify-center overflow-hidden rounded">
                     {activity.photo ? (
@@ -181,6 +221,15 @@ const MainContent: React.FC<MainContentProps> = ({
         </p>
       </footer>
 
+      {/* Edit Sport Modal */}
+      {showEditModal && selectedSport && (
+      <EditSportModal
+        show={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        sport={selectedSport}
+        onUpdate={handleUpdateSport}
+      />
+    )}
       {/* Create Sport Modal */}
       <CreateSportModal
         show={showCreateModal}

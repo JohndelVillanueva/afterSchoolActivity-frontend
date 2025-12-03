@@ -10,34 +10,18 @@ import { API_BASE_URL } from '../../src/types/types';
 const SportPages = () => {
   //   const navigate = useNavigate();
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedSport, setSelectedSport] = useState<Activity | null>(null);
   const [activeCategory, setActiveCategory] = useState('all');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false); // New: mobile sidebar state
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sportsActivities, setSportsActivities] = useState<Activity[]>([]);
 
-  // const { success, error } = useToast();
-
-  // Debug log
-  console.log('SportPages component is rendering');
-
   useEffect(() => {
-    // Fetch all sports from backend
-    fetch(`${API_BASE_URL}/getAllSports`)
-      .then(res => res.json())
-      .then(result => {
-        if (result.success) {
-          setSportsActivities(result.data);
-        } else {
-          setSportsActivities([]);
-        }
-      })
-      .catch(() => setSportsActivities([]));
+    fetchSports();
   }, []);
 
-  const filteredActivities = sportsActivities; // Show all activities since we don't have categories yet
-
-  const handleCreateSport = () => {
-    // Just re-fetch all sports from backend
+  const fetchSports = () => {
     fetch(`${API_BASE_URL}/getAllSports`)
       .then(res => res.json())
       .then(result => {
@@ -48,13 +32,54 @@ const SportPages = () => {
         }
       })
       .catch(() => setSportsActivities([]));
+  };
+
+  const handleEditSport = (sport: Activity) => {
+    setSelectedSport(sport);
+    setShowEditModal(true);
+  };
+
+  const handleUpdateSport = (updatedSport: Activity) => {
+    // Call API to update sport
+    fetch(`${API_BASE_URL}/updateSport`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updatedSport),
+    })
+      .then(res => res.json())
+      .then(result => {
+        if (result.success) {
+          // Refresh the list
+          fetchSports();
+          // You can also use toast notification here
+          // success('Sport updated successfully');
+        } else {
+          // error('Failed to update sport');
+        }
+      })
+      .catch(() => {
+        // error('Error updating sport');
+      })
+      .finally(() => {
+        setShowEditModal(false);
+        setSelectedSport(null);
+      });
+  };
+
+  // Update this function to not expect any arguments
+  const handleCreateSport = () => {
+    // Simply refresh the list since the modal handles creation
+    fetchSports();
   };
 
   const handleSidebarToggle = (collapsed: boolean) => {
     setSidebarCollapsed(collapsed);
   };
 
-  // Hamburger button for mobile
+  const filteredActivities = sportsActivities;
+
   const MobileTopBar = (
     <div className="md:hidden flex items-center bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-30">
       <button
@@ -82,7 +107,12 @@ const SportPages = () => {
         <MainContent
           showCreateModal={showCreateModal}
           setShowCreateModal={setShowCreateModal}
-          handleCreateSport={handleCreateSport}
+          showEditModal={showEditModal}
+          setShowEditModal={setShowEditModal}
+          selectedSport={selectedSport}
+          handleEditSport={handleEditSport}
+          handleUpdateSport={handleUpdateSport}
+          handleCreateSport={handleCreateSport} // Now this matches the expected type
           setActiveCategory={setActiveCategory}
           filteredActivities={filteredActivities}
           sidebarCollapsed={sidebarCollapsed}

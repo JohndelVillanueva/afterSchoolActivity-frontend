@@ -3,17 +3,35 @@ import Sidebar from '../../components/SideBar';
 
 const CalendarPage: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // New: mobile sidebar state
 
   const handleSidebarToggle = (collapsed: boolean) => {
     setSidebarCollapsed(collapsed);
   };
 
+  // Hamburger button for mobile
+  const MobileTopBar = (
+    <div className="md:hidden flex items-center bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-30">
+      <button
+        className="mr-3 p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        onClick={() => setSidebarOpen(true)}
+        aria-label="Open sidebar"
+      >
+        <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+      <span className="text-lg font-semibold text-gray-800">Calendar</span>
+    </div>
+  );
+
   return (
     <div className="min-h-screen flex">
-      <Sidebar onCollapsedChange={handleSidebarToggle} />
+      <Sidebar onCollapsedChange={handleSidebarToggle} open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div
         className={`flex-1 bg-transparent min-h-screen transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'} flex items-center justify-center`}
       >
+        {MobileTopBar}
         <style>{`
           @keyframes float404 {
             0% { transform: translateY(0); }

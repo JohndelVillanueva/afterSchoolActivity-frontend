@@ -1,0 +1,702 @@
+.auth-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.auth-container {
+  width: 100%;
+  max-width: 500px;
+  position: relative;
+}
+
+.back-btn {
+  position: absolute;
+  top: -60px;
+  left: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: background 0.3s;
+}
+
+.back-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.auth-card {
+  background: white;
+  padding: 3rem;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.auth-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #2563eb;
+  margin-bottom: 1rem;
+}
+
+.auth-header h2 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  color: #1f2937;
+}
+
+.auth-header p {
+  color: #6b7280;
+}
+
+.auth-form {
+  margin-bottom: 2rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+.form-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #6b7280;
+  cursor: pointer;
+}
+
+.forgot-link {
+  color: #2563eb;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.forgot-link:hover {
+  text-decoration: underline;
+}
+
+.btn-full {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1.1rem;
+}
+
+.auth-footer {
+  text-align: center;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.auth-footer p {
+  color: #6b7280;
+}
+
+.auth-link {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .auth-card {
+    padding: 2rem;
+  }
+  
+  .auth-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .back-btn {
+    top: -50px;
+  }
+}
+.demo-section {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid #e5e7eb;
+}
+
+.demo-section h4 {
+  margin: 0 0 1rem 0;
+  color: #374151;
+  text-align: center;
+}
+
+.demo-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.demo-role-btn {
+  padding: 0.75rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.3s;
+  text-align: center;
+}
+
+.demo-role-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.demo-role-btn.student {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.demo-role-btn.coach {
+  border-color: #f59e0b;
+  color: #f59e0b;
+}
+
+.demo-role-btn.admin {
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+/* Portal Links */
+.portal-links {
+  background: #f0f9ff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  border-left: 4px solid #0ea5e9;
+}
+
+.portal-link {
+  margin-bottom: 0.75rem;
+  color: #0369a1;
+  font-size: 0.9rem;
+}
+
+.portal-link:last-child {
+  margin-bottom: 0;
+}
+
+.portal-link strong {
+  color: #0c4a6e;
+}
+
+/* Form Sections */
+.form-section {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.form-section:last-of-type {
+  border-bottom: none;
+}
+
+.form-section h3 {
+  color: #1f2937;
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+/* Agreements */
+.agreements {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.agreement {
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  transition: all 0.3s;
+}
+
+.agreement:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.agreement.required {
+  border-left: 4px solid #ef4444;
+}
+
+/* Responsive Design for Demo Buttons */
+@media (max-width: 768px) {
+  .demo-buttons {
+    grid-template-columns: 1fr;
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-note {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1.5rem 0;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.form-note p {
+  margin: 0;
+}
+
+/* Compact form layout */
+.auth-card {
+  max-width: 450px;
+}
+
+.auth-form {
+  margin-bottom: 1.5rem;
+}
+
+/* Responsive improvements */
+@media (max-width: 480px) {
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  
+  .auth-card {
+    padding: 1.5rem;
+  }
+}
+
+/* Square Layout Styles */
+.square-auth-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.square-auth-container {
+  width: 100%;
+  max-width: 500px;
+  min-width: 450px;
+}
+
+.square-auth-card {
+  background: white;
+  padding: 2.5rem;
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  aspect-ratio: 1/1.1;
+  display: flex;
+  flex-direction: column;
+}
+
+.square-auth-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.square-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #2563eb;
+  margin-bottom: 1rem;
+}
+
+.square-auth-header h2 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: #1f2937;
+  font-weight: 700;
+}
+
+.square-auth-header p {
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+/* Square Form Styles */
+.square-auth-form {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.square-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.square-form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.square-form-group label {
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.9rem;
+}
+
+.square-form-group input {
+  padding: 0.875rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  transition: all 0.3s;
+  background: white;
+  width: 100%;
+}
+
+.square-form-group input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.square-form-group input.error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* Password Input */
+.square-password-input {
+  position: relative;
+}
+
+.square-password-input .password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background 0.3s;
+}
+
+.square-password-input .password-toggle:hover {
+  background: #f3f4f6;
+}
+
+/* Buttons */
+.square-btn {
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+}
+
+.square-btn-primary {
+  background: #2563eb;
+  color: white;
+}
+
+.square-btn-primary:hover:not(:disabled) {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.square-btn-full {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: auto;
+}
+
+.square-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Loading State */
+.square-btn.loading {
+  pointer-events: none;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Error Styling */
+.error-text {
+  color: #ef4444;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+.error-message {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 0.875rem;
+  border-radius: 6px;
+  text-align: center;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+/* Footer */
+.square-auth-footer {
+  text-align: center;
+  padding-top: 1rem;
+  margin-top: auto;
+}
+
+.square-auth-footer p {
+  color: #6b7280;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.square-auth-link {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.square-auth-link:hover {
+  text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .square-auth-container {
+    min-width: 400px;
+    max-width: 400px;
+  }
+  
+  .square-auth-card {
+    padding: 2rem;
+    aspect-ratio: 1/1.2;
+  }
+}
+
+@media (max-width: 480px) {
+  .square-auth-container {
+    min-width: 350px;
+    max-width: 350px;
+  }
+  
+  .square-auth-card {
+    padding: 1.5rem;
+    aspect-ratio: 1/1.3;
+  }
+  
+  .square-form-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  
+  .square-auth-header h2 {
+    font-size: 1.3rem;
+  }
+  
+  .square-logo {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .square-auth-container {
+    min-width: 320px;
+    max-width: 320px;
+  }
+  
+  .square-auth-card {
+    padding: 1.25rem;
+  }
+}
+
+.password-input {
+  position: relative;
+  width: 100%;
+}
+
+.password-input input {
+  width: 100%;
+  padding-right: 45px; /* Make space for the eye icon */
+}
+
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 35px;
+  height: 35px;
+}
+
+.password-toggle:hover {
+  background-color: #f3f4f6;
+}
+
+/* Ensure the input field doesn't overlap with the eye icon */
+.form-group input {
+  width: 100%;
+  box-sizing: border-box; /* Include padding in width calculation */
+}
+
+/* For the square layout specifically */
+.square-password-input {
+  position: relative;
+  width: 100%;
+}
+
+.square-password-input input {
+  width: 100%;
+  padding-right: 45px;
+}
+
+.square-password-input .password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 6px;
+  border-radius: 4px;
+  transition: background 0.3s;
+  z-index: 2;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.square-password-input .password-toggle:hover {
+  background: #f3f4f6;
+}
+
+.login-width {
+  width: 100%;
+  max-width: 450px;
+  min-width: 400px;
+}
+
+.login-card {
+  width: 100%;
+  padding: 2.5rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  aspect-ratio: 1/1.1; /* Same square ratio as registration */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Make sure form takes available space */
+.auth-form {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.auth-footer {
+  margin-top: auto;
+}

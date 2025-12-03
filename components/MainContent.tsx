@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import CreateSportModal from "../modals/CreateSportModal";
 import type { Activity } from "../src/types/types";
+import { API_BASE_URL } from '../src/types/types';
 
 interface MainContentProps {
   setActiveCategory: React.Dispatch<React.SetStateAction<string>>;
@@ -11,6 +12,10 @@ interface MainContentProps {
   handleCreateSport: (newActivity: Activity) => void;
   onActivityClick?: (activity: Activity) => void; // New prop for handling clicks
   sidebarCollapsed?: boolean; // New prop for sidebar state
+  success?: string | null;
+  error?: string | null;
+  setSuccess?: React.Dispatch<React.SetStateAction<string | null>>;
+  setError?: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 const MainContent: React.FC<MainContentProps> = ({
@@ -20,6 +25,10 @@ const MainContent: React.FC<MainContentProps> = ({
   handleCreateSport,
   onActivityClick, // Destructure the new prop
   sidebarCollapsed = false, // Default to false
+  success,
+  error,
+  setSuccess,
+  setError,
 }) => {
   const navigate = useNavigate();
 
@@ -34,7 +43,7 @@ const MainContent: React.FC<MainContentProps> = ({
   };
 
   return (
-    <div className={`flex-1 bg-white min-h-screen transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'}`}>
+    <div className="flex-1 bg-white min-h-screen transition-all duration-300 ease-in-out">
       {/* Mobile Header */}
       <header className="md:hidden border-b border-gray-100 py-4 px-4 bg-white">
         <h1 className="text-xl font-light text-gray-900">Sports Programs</h1>
@@ -48,11 +57,11 @@ const MainContent: React.FC<MainContentProps> = ({
               All Sports
             </h1>
             <p className="text-gray-500 mt-1">
-              Fall 2023 Season • Registration Open
+              Fall 2025 Season • Registration Open
             </p>
           </div>
           <button
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+            className="px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors text-sm"
             onClick={() => setShowCreateModal(true)}
           >
             Create New Sport
@@ -60,6 +69,27 @@ const MainContent: React.FC<MainContentProps> = ({
         </div>
       </header>
 
+      {/* Success/Error Messages */}
+      {(success || error) && (
+        <div className="px-8 pt-4">
+          {success && (
+            <div className="mb-2 flex items-center justify-between bg-green-100 border border-green-300 text-green-800 rounded p-2">
+              <span>{success}</span>
+              {setSuccess && (
+                <button onClick={() => setSuccess(null)} className="ml-2 text-green-700 hover:text-green-900">&times;</button>
+              )}
+            </div>
+          )}
+          {error && (
+            <div className="mb-2 flex items-center justify-between bg-red-100 border border-red-300 text-red-800 rounded p-2">
+              <span>{error}</span>
+              {setError && (
+                <button onClick={() => setError(null)} className="ml-2 text-red-700 hover:text-red-900">&times;</button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
       {/* Activities Grid */}
       <main className="p-3 md:p-6 bg-white min-h-[60vh]">
         {filteredActivities.length > 0 ? (
@@ -73,16 +103,18 @@ const MainContent: React.FC<MainContentProps> = ({
                 <div className="h-full flex flex-col border border-gray-100 hover:border-gray-200 p-3 transition-colors rounded-lg">
                   <div className="aspect-[4/3] bg-gray-50 mb-3 flex items-center justify-center overflow-hidden rounded">
                     {activity.photo ? (
-                      <>
-                        {console.log('[DEBUG] Activity photo URL:', activity.photo)}
-                        <img 
-                          src={`http://localhost:3000${activity.photo}`} 
-                          alt={activity.name}
-                          className="w-full h-full object-cover"
-                          onError={(e) => console.error('[DEBUG] Image failed to load:', activity.photo, e)}
-                          onLoad={() => console.log('[DEBUG] Image loaded successfully:', activity.photo)}
-                        />
-                      </>
+                      (() => {
+                        console.log('[DEBUG] Activity photo URL:', activity.photo);
+                        return (
+                          <img 
+                            src={`${API_BASE_URL}${activity.photo}`} 
+                            alt={activity.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => console.error('[DEBUG] Image failed to load:', activity.photo, e)}
+                            onLoad={() => console.log('[DEBUG] Image loaded successfully:', activity.photo)}
+                          />
+                        );
+                      })()
                     ) : (
                       <svg
                         className="w-8 h-8 text-gray-300 group-hover:text-gray-400 transition-colors"

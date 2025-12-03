@@ -21,3 +21,7 @@ export interface RegistrationModalProps {
   onClose: () => void;
   selectedActivity: Activity | undefined;
 }
+
+// API base URL type for Vite environment variable
+// Use the environment variable
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';

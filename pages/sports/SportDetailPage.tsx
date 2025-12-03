@@ -4,6 +4,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import Sidebar from '../../components/SideBar';
 import type { Activity } from '../../src/types/types';
 import RegistrationModal from '../../modals/RegistrationModal';
+import { API_BASE_URL } from '../../src/types/types';
 
 const SportDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -11,6 +12,7 @@ const SportDetailPage = () => {
   const navigate = useNavigate();
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // New: mobile sidebar state
   const [activity, setActivity] = useState<Activity | undefined>(location.state?.activity);
   const [students, setStudents] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -19,7 +21,7 @@ const SportDetailPage = () => {
   // Fetch activity by ID if not present (e.g., on refresh)
   useEffect(() => {
     if (!activity && id) {
-      fetch(`http://localhost:3000/getActivityById/${id}`)
+      fetch(`${API_BASE_URL}/getActivityById/${id}`)
         .then(res => res.json())
         .then(data => {
           if (data.success) setActivity(data.data);
@@ -32,7 +34,7 @@ const SportDetailPage = () => {
     const activityId = activity?.id || Number(id);
     setLoading(true);
     setError(null);
-    fetch(`http://localhost:3000/activities/${activityId}/enrolled-students`)
+    fetch(`${API_BASE_URL}/activities/${activityId}/enrolled-students`)
       .then(res => res.json())
       .then(data => {
         if (data.success) {
@@ -54,11 +56,28 @@ const SportDetailPage = () => {
     setSidebarCollapsed(collapsed);
   };
 
+  // Hamburger button for mobile
+  const MobileTopBar = (
+    <div className="md:hidden flex items-center bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-30">
+      <button
+        className="mr-3 p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        onClick={() => setSidebarOpen(true)}
+        aria-label="Open sidebar"
+      >
+        <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+      <span className="text-lg font-semibold text-gray-800">Activity Details</span>
+    </div>
+  );
+
   if (!activity) {
     return (
       <div className="min-h-screen flex">
-        <Sidebar onCollapsedChange={handleSidebarToggle} />
+        <Sidebar onCollapsedChange={handleSidebarToggle} open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <div className={`flex-1 bg-white min-h-screen transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'}`}>
+          {MobileTopBar}
           <div className="p-8 text-center">
             <svg
               className="mx-auto h-12 w-12 text-gray-400"
@@ -88,7 +107,7 @@ const SportDetailPage = () => {
 
   return (
     <div className="min-h-screen flex">
-      <Sidebar onCollapsedChange={handleSidebarToggle} />
+      <Sidebar onCollapsedChange={handleSidebarToggle} open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className={`flex-1 bg-transparent min-h-screen transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'}`}>
         {/* Header */}
         <header className="border-b border-gray-100 py-4 px-4 md:py-8 md:px-8">
@@ -138,11 +157,11 @@ const SportDetailPage = () => {
                     <div key={student.id} className="flex justify-between items-center p-3 border-b border-gray-100 last:border-0">
                       <div>
                         <p className="font-medium text-gray-900">{student.name}</p>
-                        <p className="text-sm text-gray-500">Grade {student.grade}</p>
+                        {/* <p className="text-sm text-gray-500">Grade {student.grade}</p> */}
                       </div>
                       <span className="text-xs text-gray-400">
                         Registered: {student.registeredOn ? new Date(student.registeredOn).toLocaleDateString() : 'N/A'}
-                        {typeof student.balance === 'number' ? ` | Balance: ${new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(student.balance)}` : ''}
+                        {/* {typeof student.balance === 'number' ? ` | Balance: ${new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(student.balance)}` : ''} */}
                       </span>
                     </div>
                   ))
@@ -163,7 +182,7 @@ const SportDetailPage = () => {
               <div className="aspect-[4/3] bg-gray-50 mb-4 flex items-center justify-center rounded-md overflow-hidden">
                 {activity.photo ? (
                   <img 
-                    src={`http://localhost:3000${activity.photo}`} 
+                    src={`${API_BASE_URL}${activity.photo}`} 
                     alt={activity.name}
                     className="w-full h-full object-cover"
                   />
@@ -216,12 +235,12 @@ const SportDetailPage = () => {
                 </div>
               </div>
 
-              <button
+              {/* <button
                 onClick={() => setShowRegistrationModal(true)}
                 className="w-full mt-6 py-3 bg-gray-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm font-medium flex items-center justify-center"
               >
                 Register New Student
-              </button>
+              </button> */}
             </div>
           </div>
         </main>

@@ -1,17 +1,24 @@
 import React, { useState, useEffect } from "react";
-import toast from "react-hot-toast";
+
+// Mock toast for demonstration
+const toast = {
+  error: (msg) => console.error(msg),
+  success: (msg) => console.log(msg)
+};
+
 import { API_BASE_URL } from "../src/types/types";
+
 
 interface StudentDetails {
   id: number;
   fname: string;
   lname: string;
   email: string;
-  username: string; // Add this
+  username: string;
   rfid: string;
   grade: string;
   parentName: string;
-  parentEmail: string; // Add this
+  parentEmail: string;
   parentPhone: string;
   address: string;
   dateOfBirth: string;
@@ -52,12 +59,11 @@ const ViewEditStudentModal: React.FC<ViewEditStudentModalProps> = ({
   studentId,
   onUpdateSuccess,
 }) => {
-  const [studentDetails, setStudentDetails] = useState<StudentDetails | null>(
-    null
-  );
+  const [studentDetails, setStudentDetails] = useState<StudentDetails | null>(null);
   const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState<"view" | "edit">("view");
   const [formData, setFormData] = useState<any>({});
+  const [originalSessionsPurchased, setOriginalSessionsPurchased] = useState(0);
 
   useEffect(() => {
     if (isOpen && studentId) {
@@ -68,7 +74,6 @@ const ViewEditStudentModal: React.FC<ViewEditStudentModalProps> = ({
   const fetchStudentDetails = async () => {
     setLoading(true);
     try {
-      // Replace with your actual API endpoint
       const response = await fetch(
         `${API_BASE_URL}/getStudentDetails/${studentId}`
       );
@@ -77,6 +82,7 @@ const ViewEditStudentModal: React.FC<ViewEditStudentModalProps> = ({
       if (result.success) {
         setStudentDetails(result.data);
         setFormData(result.data);
+        setOriginalSessionsPurchased(result.data.sessionsPurchased);
       } else {
         toast.error("Failed to load student details");
       }
@@ -94,6 +100,8 @@ const ViewEditStudentModal: React.FC<ViewEditStudentModalProps> = ({
     >
   ) => {
     const { name, value } = e.target;
+    
+    // Just update the value without auto-calculation
     setFormData((prev: any) => ({
       ...prev,
       [name]: value,
@@ -105,6 +113,26 @@ const ViewEditStudentModal: React.FC<ViewEditStudentModalProps> = ({
 
     setLoading(true);
     try {
+      // Calculate the difference and update sessionsRemaining before saving
+      const newSessionsPurchased = Number(formData.sessionsPurchased) || 0;
+      const sessionDifference = newSessionsPurchased - originalSessionsPurchased;
+      const newSessionsRemaining = (studentDetails.sessionsRemaining || 0) + sessionDifference;
+      
+      console.log('📊 Session Calculation on Save:');
+      console.log('  Original Sessions Purchased:', originalSessionsPurchased);
+      console.log('  New Sessions Purchased:', newSessionsPurchased);
+      console.log('  Difference:', sessionDifference);
+      console.log('  Original Sessions Remaining:', studentDetails.sessionsRemaining);
+      console.log('  New Sessions Remaining:', newSessionsRemaining);
+      console.log('---');
+
+      // Update formData with calculated sessionsRemaining
+      const dataToSave = {
+        ...formData,
+        sessionsPurchased: newSessionsPurchased,
+        sessionsRemaining: newSessionsRemaining,
+      };
+
       const response = await fetch(
         `${API_BASE_URL}/updateStudent/${studentId}`,
         {
@@ -112,7 +140,7 @@ const ViewEditStudentModal: React.FC<ViewEditStudentModalProps> = ({
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(formData),
+          body: JSON.stringify(dataToSave),
         }
       );
 
@@ -120,7 +148,9 @@ const ViewEditStudentModal: React.FC<ViewEditStudentModalProps> = ({
 
       if (result.success) {
         toast.success("Student updated successfully!");
-        setStudentDetails(formData);
+        setStudentDetails(dataToSave);
+        setFormData(dataToSave);
+        setOriginalSessionsPurchased(newSessionsPurchased);
         setViewMode("view");
         onUpdateSuccess?.();
       } else {
@@ -146,16 +176,13 @@ const ViewEditStudentModal: React.FC<ViewEditStudentModalProps> = ({
 
   return (
     <>
-      {/* Backdrop with blur effect */}
       <div 
         className="fixed inset-0 z-40 bg-blur bg-opacity-50 backdrop-blur-sm"
         onClick={onClose}
       />
       
-      {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
-          {/* Header */}
           <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
             <div className="flex justify-between items-center">
               <div>
@@ -174,6 +201,7 @@ const ViewEditStudentModal: React.FC<ViewEditStudentModalProps> = ({
                     if (viewMode === "edit") {
                       setViewMode("view");
                       setFormData(studentDetails);
+                      setOriginalSessionsPurchased(studentDetails?.sessionsPurchased || 0);
                     } else {
                       onClose();
                     }
@@ -202,7 +230,6 @@ const ViewEditStudentModal: React.FC<ViewEditStudentModalProps> = ({
             </div>
           </div>
 
-          {/* Content */}
           <div className="p-6 overflow-y-auto max-h-[70vh]">
             {loading ? (
               <div className="flex justify-center items-center h-64">
@@ -210,7 +237,6 @@ const ViewEditStudentModal: React.FC<ViewEditStudentModalProps> = ({
               </div>
             ) : studentDetails ? (
               <div className="space-y-6">
-                {/* Personal Information */}
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h3 className="text-lg font-semibold text-gray-800 mb-4">
                     Personal Information
@@ -315,7 +341,6 @@ const ViewEditStudentModal: React.FC<ViewEditStudentModalProps> = ({
                   </div>
                 </div>
 
-                {/* Contact Information */}
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h3 className="text-lg font-semibold text-gray-800 mb-4">
                     Contact Information
@@ -432,19 +457,51 @@ const ViewEditStudentModal: React.FC<ViewEditStudentModalProps> = ({
                   </div>
                 </div>
 
-                {/* Sessions Information */}
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h3 className="text-lg font-semibold text-gray-800 mb-4">
                     Sessions Information
                   </h3>
+                  {viewMode === "edit" && (
+                    <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded">
+                      <p className="text-sm text-green-800 font-semibold mb-2">
+                        💡 How it works:
+                      </p>
+                      <div className="text-xs text-green-700 space-y-1">
+                        <p><strong>Edit Sessions Purchased</strong> and when you click <strong>"Save Changes"</strong>, Sessions Remaining will automatically update based on the difference.</p>
+                        <p><strong>Formula:</strong> New Remaining = Original Remaining + (New Purchased - Original Purchased)</p>
+                        <p><strong>Example:</strong> If you change Purchased from 20 → 25, then Remaining will increase by +5 when you save.</p>
+                      </div>
+                    </div>
+                  )}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="text-center p-4 bg-white rounded border">
-                      <div className="text-2xl font-bold text-green-600">
-                        {studentDetails.sessionsPurchased}
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        Sessions Purchased
-                      </div>
+                      {viewMode === "view" ? (
+                        <>
+                          <div className="text-2xl font-bold text-green-600">
+                            {studentDetails.sessionsPurchased}
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            Sessions Purchased
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <input
+                            type="number"
+                            name="sessionsPurchased"
+                            value={formData.sessionsPurchased}
+                            onChange={handleInputChange}
+                            className="text-2xl font-bold text-green-600 w-full text-center border-2 border-green-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-green-500"
+                            min="0"
+                          />
+                          <div className="text-sm text-gray-600 mt-2">
+                            Sessions Purchased
+                          </div>
+                          <div className="text-xs text-green-600 mt-1 font-semibold">
+                            ✏️ Edit this field
+                          </div>
+                        </>
+                      )}
                     </div>
                     <div className="text-center p-4 bg-white rounded border">
                       <div className="text-2xl font-bold text-yellow-600">
@@ -452,6 +509,9 @@ const ViewEditStudentModal: React.FC<ViewEditStudentModalProps> = ({
                       </div>
                       <div className="text-sm text-gray-600">
                         Sessions Attended
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        (Read-only)
                       </div>
                     </div>
                     <div className="text-center p-4 bg-white rounded border">
@@ -461,11 +521,15 @@ const ViewEditStudentModal: React.FC<ViewEditStudentModalProps> = ({
                       <div className="text-sm text-gray-600">
                         Sessions Remaining
                       </div>
+                      {viewMode === "edit" && (
+                        <div className="text-xs text-blue-600 mt-1 font-semibold">
+                          (Updates on save)
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
 
-                {/* Medical Notes */}
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h3 className="text-lg font-semibold text-gray-800 mb-4">
                     Medical Notes
@@ -486,7 +550,6 @@ const ViewEditStudentModal: React.FC<ViewEditStudentModalProps> = ({
                   )}
                 </div>
 
-                {/* Activities */}
                 {studentDetails.activities &&
                   studentDetails.activities.length > 0 && (
                     <div className="bg-gray-50 p-4 rounded-lg">
@@ -516,7 +579,6 @@ const ViewEditStudentModal: React.FC<ViewEditStudentModalProps> = ({
                     </div>
                   )}
 
-                {/* System Information */}
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h3 className="text-lg font-semibold text-gray-800 mb-4">
                     System Information

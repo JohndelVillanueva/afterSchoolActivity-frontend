@@ -19,7 +19,7 @@ const CreateSportModal: React.FC<CreateSportModalProps> = ({ show, onClose, onCr
     location: 'Westfields International School',
     coachName: '',
     photo: '',
-    rate: 0,
+    rate: '',
   });
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);

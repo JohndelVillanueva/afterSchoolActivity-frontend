@@ -642,7 +642,7 @@ const StudentsPage: React.FC = () => {
             />
 
             {/* Modal */}
-            <div className="relative bg-black rounded-lg shadow-xl w-full max-w-2xl overflow-hidden">
+            <div className="relative bg-white rounded-lg shadow-xl w-full max-w-2xl overflow-hidden">
               {/* Header */}
               <div className="border-b border-gray-200 px-8 py-6">
                 <div className="flex items-start justify-between">

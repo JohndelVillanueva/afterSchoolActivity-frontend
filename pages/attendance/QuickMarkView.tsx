@@ -9,7 +9,7 @@ interface Student {
   lname: string;
   position: string;
   email: string;
-  isEnrolledInAfterSchool?: boolean;
+  isEnrolledInAfterSchool?: number; // 0 = not enrolled, 1 = student, 2 = coach
 }
 
 interface AttendanceRecord {

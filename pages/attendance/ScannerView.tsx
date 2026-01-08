@@ -1,4 +1,4 @@
-import React, { RefObject } from "react";
+import React, { type RefObject } from "react";
 import type { Activity } from "../../src/types/types";
 
 interface ScanRecord {
@@ -20,6 +20,7 @@ interface TodayStats {
 interface ScannerViewProps {
   activities: Activity[];
   selectedActivity: string;
+  // onMarkAttendance: (ScanRecord: ScanRecord, status: "present" | "absent") => void;
   onActivityChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   loading: boolean;
   isScanning: boolean;
@@ -27,7 +28,7 @@ interface ScannerViewProps {
   rfidInput: string;
   setRfidInput: (value: string) => void;
   handleRfidSubmit: (e: React.FormEvent) => void;
-  inputRef: RefObject<HTMLInputElement>;
+  inputRef: RefObject<HTMLInputElement | null>;
   todayStats: TodayStats;
   scanRecords: ScanRecord[];
   formatTime: (isoString: string) => string;

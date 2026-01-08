@@ -14,7 +14,7 @@ interface Student {
   lname: string;
   position: string;
   email: string;
-  isEnrolledInAfterSchool?: boolean;
+  isEnrolledInAfterSchool?: number;
 }
 
 interface StudentWithSession extends Student {
@@ -22,6 +22,7 @@ interface StudentWithSession extends Student {
   sessionsAttended: number;
   sessionsRemaining: number;
   hasAttendanceOnDate: boolean;
+  position: string;
   dateAttendanceStatus: "present" | "absent" | null;
   dateAttendanceTime: string | null;
   enrolledDate: string;
@@ -173,30 +174,36 @@ const AttendancePage: React.FC = () => {
     []
   );
 
-  const fetchStudents = useCallback((activityId?: string) => {
-    setStudentsLoading(true);
+const fetchStudents = useCallback((activityId?: string) => {
+  setStudentsLoading(true);
 
-    const url = activityId
-      ? `${API_BASE_URL}/getStudentsByActivity/${activityId}`
-      : `${API_BASE_URL}/getAllUsers`;
+  const url = activityId
+    ? `${API_BASE_URL}/getStudentsByActivity/${activityId}`
+    : `${API_BASE_URL}/getAllUsers`;
 
-    fetch(url)
-      .then((res) => res.json())
-      .then((result) => {
-        if (result.success) {
+  fetch(url)
+    .then((res) => res.json())
+    .then((result) => {
+      if (result.success) {
+        // When fetching by activity, the data is already filtered correctly
+        if (activityId) {
+          setStudents(result.data);
+        } else {
+          // When fetching all users, filter for students enrolled in afterschool
           const studentUsers = result.data.filter(
             (user: Student) =>
-              user.position.toLowerCase() === "student" &&
-              !!user.isEnrolledInAfterSchool
+              user.position?.toLowerCase() === "student" &&
+              user.isEnrolledInAfterSchool === 1  // Changed from !! to === 1
           );
           setStudents(studentUsers);
-        } else {
-          setStudents([]);
         }
-      })
-      .catch(() => setStudents([]))
-      .finally(() => setStudentsLoading(false));
-  }, []);
+      } else {
+        setStudents([]);
+      }
+    })
+    .catch(() => setStudents([]))
+    .finally(() => setStudentsLoading(false));
+}, []);
 
   useEffect(() => {
     if (selectedActivity) {
@@ -705,7 +712,8 @@ const AttendancePage: React.FC = () => {
               goToNextDay={goToNextDay}
               goToToday={goToToday}
             />
-          ) : (
+          ) 
+          : (
             <QuickMarkView
               activities={activities}
               selectedActivity={selectedActivity}

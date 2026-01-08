@@ -10,6 +10,7 @@ interface StudentWithSession {
   email: string;
   grade: string;
   enrolledDate: string;
+  position: string;
   sessionsPurchased: number;
   sessionsAttended: number;
   sessionsRemaining: number;

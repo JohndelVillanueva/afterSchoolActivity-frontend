@@ -123,7 +123,7 @@ const DashboardPage: React.FC = () => {
         {/* Mobile Top Bar */}
         {MobileTopBar}
         {/* Gradient Header */}
-        <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 p-8 rounded-b-3xl shadow-lg mb-8">
+        <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 p-8 shadow-lg mb-8">
           <h1 className="text-3xl font-bold mb-2 text-white drop-shadow">Welcome to the Afterschool Dashboard!</h1>
           <p className="text-white/90 mb-0">Here's a quick overview of your afterschool activity system.</p>
         </div>

@@ -721,9 +721,303 @@ const CoachesPage: React.FC = () => {
         </main>
 
         {/* Modal - keeping your existing modal code */}
-        {showModal && (
+                {showModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            {/* Modal content remains the same as your original code */}
+            <div className="absolute inset-0 bg-black/40" onClick={handleModalClose} />
+
+            <div className="relative bg-white rounded-lg shadow-xl w-full max-w-2xl overflow-hidden">
+              <div className="border-b border-gray-200 px-8 py-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <h2 className="text-2xl font-semibold text-gray-900 mb-1">
+                      {formStep === 'rfid'
+                        ? 'Scan RFID Card'
+                        : existingCoach?.isNotCoach
+                        ? 'Convert to Coach'
+                        : existingCoach
+                        ? 'Update Existing Coach'
+                        : 'Create New Coach'}
+                    </h2>
+                    <p className="text-sm text-gray-600">
+                      {formStep === 'rfid'
+                        ? "Enter the coach's RFID to get started"
+                        : existingCoach?.isNotCoach
+                        ? `${existingCoach.fname} ${existingCoach.lname} will be converted from ${existingCoach.originalType} to coach`
+                        : existingCoach
+                        ? 'Coach found - Update details if needed'
+                        : 'Fill in the details for the new coach'}
+                    </p>
+                  </div>
+                  <button
+                    className="text-gray-400 hover:text-gray-600 transition-colors ml-4"
+                    onClick={handleModalClose}
+                    aria-label="Close"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-2 mt-6">
+                  <div className={`flex-1 h-0.5 transition-all duration-300 ${formStep === 'rfid' ? 'bg-gray-900' : 'bg-gray-300'}`} />
+                  <div className={`flex-1 h-0.5 transition-all duration-300 ${formStep === 'details' ? 'bg-gray-900' : 'bg-gray-300'}`} />
+                </div>
+              </div>
+
+              <div className="p-8">
+                {formStep === 'rfid' ? (
+                  <div className="space-y-6">
+                    {formError && (
+                      <div className="p-4 border border-gray-900 bg-gray-50">
+                        <p className="text-sm text-gray-900 font-medium">{formError}</p>
+                      </div>
+                    )}
+
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-900">
+                        RFID Card Number <span className="text-gray-900">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="rfid"
+                        value={form.rfid}
+                        onChange={handleInputChange}
+                        className="block w-full px-4 py-3 border border-gray-300 focus:outline-none focus:border-gray-900 transition-colors text-base font-mono"
+                        placeholder="Scan or enter RFID..."
+                        autoFocus
+                      />
+                      <p className="text-xs text-gray-500 mt-2">
+                        Scan the coach's RFID card or enter it manually
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={handleRfidCheck}
+                      className="w-full py-3 px-6 bg-gray-900 text-white hover:bg-gray-800 transition-colors font-medium text-base disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+                      disabled={checkingRfid}
+                    >
+                      {checkingRfid ? (
+                        <>
+                          <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Checking RFID...
+                        </>
+                      ) : (
+                        <>
+                          Continue
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                          </svg>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {formError && (
+                      <div className="p-4 border border-gray-900 bg-gray-50">
+                        <p className="text-sm text-gray-900 font-medium">{formError}</p>
+                      </div>
+                    )}
+
+                    {existingCoach && (
+                      <div className="p-5 border-2 border-gray-900 bg-gray-50">
+                        <div className="flex items-start gap-4">
+                          <div className="w-12 h-12 border-2 border-gray-900 bg-white flex items-center justify-center text-base font-bold text-gray-900 flex-shrink-0">
+                            {getInitials(existingCoach.fname, existingCoach.lname)}
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-gray-900 text-base mb-1">
+                              {existingCoach.fname} {existingCoach.lname}
+                            </h3>
+                            <p className="text-sm text-gray-600">{existingCoach.email || 'No email'}</p>
+                            <p className="text-xs text-gray-500 font-mono mt-2">RFID: {existingCoach.rfid}</p>
+                            
+                            {/* Show user type if not a coach */}
+                            {existingCoach.isNotCoach && (
+                              <div className="mt-2 p-2 bg-yellow-100 border border-yellow-300 rounded">
+                                <p className="text-xs text-yellow-800 font-medium">
+                                  ⚠️ This RFID belongs to a <span className="font-bold">{existingCoach.originalType}</span>.
+                                  They will be converted to a coach.
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-900">
+                          First Name <span className="text-gray-900">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          name="fname"
+                          value={form.fname}
+                          onChange={handleInputChange}
+                          className="block w-full px-4 py-3 border border-gray-300 focus:outline-none focus:border-gray-900 transition-colors disabled:bg-gray-100 disabled:text-gray-500"
+                          disabled={!!existingCoach}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-900">
+                          Last Name <span className="text-gray-900">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          name="lname"
+                          value={form.lname}
+                          onChange={handleInputChange}
+                          className="block w-full px-4 py-3 border border-gray-300 focus:outline-none focus:border-gray-900 transition-colors disabled:bg-gray-100 disabled:text-gray-500"
+                          disabled={!!existingCoach}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-900">Email *</label>
+                        <input
+                          type="email"
+                          name="email"
+                          value={form.email}
+                          onChange={handleInputChange}
+                          className="block w-full px-4 py-3 border border-gray-300 focus:outline-none focus:border-gray-900 transition-colors disabled:bg-gray-100 disabled:text-gray-500"
+                          disabled={!!existingCoach}
+                          placeholder="coach@example.com"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-900">
+                          RFID <span className="text-gray-900">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          name="rfid"
+                          value={form.rfid}
+                          onChange={handleInputChange}
+                          className="block w-full px-4 py-3 border border-gray-300 font-mono bg-gray-100 text-gray-700"
+                          disabled
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-900">Gender</label>
+                        <select
+                          name="gender"
+                          value={form.gender}
+                          onChange={handleInputChange}
+                          className="block w-full px-4 py-3 border border-gray-300 focus:outline-none focus:border-gray-900 bg-white transition-colors"
+                        >
+                          <option value="">Select gender</option>
+                          <option value="Male">Male</option>
+                          <option value="Female">Female</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-900">Mobile</label>
+                        <input
+                          type="text"
+                          name="mobile"
+                          value={form.mobile}
+                          onChange={handleInputChange}
+                          className="block w-full px-4 py-3 border border-gray-300 focus:outline-none focus:border-gray-900 transition-colors"
+                          placeholder="e.g., +1234567890"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-900">
+                        Activity / Sport <span className="text-gray-900">*</span>
+                      </label>
+                      {loadingActivities ? (
+                        <div className="block w-full px-4 py-3 border border-gray-300 text-gray-500 bg-gray-100 flex items-center gap-2">
+                          <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Loading activities...
+                        </div>
+                      ) : activities.length === 0 ? (
+                        <div className="block w-full px-4 py-3 border border-gray-300 text-gray-900 bg-gray-50">
+                          No activities available
+                        </div>
+                      ) : (
+                        <select
+                          name="activityId"
+                          value={form.activityId}
+                          onChange={handleInputChange}
+                          className="block w-full px-4 py-3 border border-gray-300 focus:outline-none focus:border-gray-900 bg-white transition-colors"
+                          required
+                        >
+                          <option value="">Select a sport/activity</option>
+                          {activities.map((activity) => (
+                            <option key={activity.id} value={activity.id}>
+                              {activity.name} ({activity.dayOfWeek} - {activity.startTime?.substring(11, 16)})
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                      <p className="text-xs text-gray-500 mt-1">
+                        Choose which sport or activity this coach will be assigned to
+                      </p>
+                    </div>
+
+                    <div className="flex gap-4 pt-4">
+                      <button
+                        onClick={handleBackToRfid}
+                        className="px-6 py-3 border-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-colors font-medium text-base flex items-center justify-center gap-2"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+                        </svg>
+                        Back
+                      </button>
+
+                      <button
+                        onClick={handleCreateCoach}
+                        className="flex-1 py-3 px-6 bg-gray-900 text-white hover:bg-gray-800 transition-colors font-medium text-base disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+                        disabled={formLoading || loadingActivities}
+                      >
+                        {formLoading ? (
+                          <>
+                            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            {existingCoach?.isNotCoach ? 'Converting...' : 'Saving...'}
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            {existingCoach?.isNotCoach 
+                              ? `Convert to Coach` 
+                              : existingCoach 
+                              ? 'Update Coach' 
+                              : 'Create Coach'
+                            }
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
 

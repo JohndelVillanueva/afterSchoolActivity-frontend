@@ -22,7 +22,6 @@ interface StudentWithSession extends Student {
   sessionsAttended: number;
   sessionsRemaining: number;
   hasAttendanceOnDate: boolean;
-  position: string;
   dateAttendanceStatus: "present" | "absent" | null;
   dateAttendanceTime: string | null;
   enrolledDate: string;

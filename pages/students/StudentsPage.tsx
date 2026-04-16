@@ -166,6 +166,18 @@ const StudentsPage: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+
+    if (name === "rfid" && !/^\d*$/.test(value)) {
+      return;
+    }
+
+    if (name === "sessions") {
+      // Allow only up to 2 digits for sessions purchased.
+      if (!/^\d{0,2}$/.test(value)) {
+        return;
+      }
+    }
+
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -803,6 +815,8 @@ const StudentsPage: React.FC = () => {
                         name="rfid"
                         value={form.rfid}
                         onChange={handleInputChange}
+                        inputMode="numeric"
+                        pattern="[0-9]*"
                         className="block w-full px-4 py-3 border border-gray-300 focus:outline-none focus:border-gray-900 transition-colors text-base font-mono"
                         placeholder="Scan or enter RFID..."
                         required
@@ -1040,10 +1054,11 @@ const StudentsPage: React.FC = () => {
                         type="number"
                         name="sessions"
                         min="0"
+                        max="99"
                         value={form.sessions}
                         onChange={handleInputChange}
                         className="block w-full px-4 py-3 border border-gray-300 focus:outline-none focus:border-gray-900 transition-colors"
-                        placeholder="e.g., 10"
+                        placeholder="e.g., 10 (max 99)"
                       />
                     </div>
 

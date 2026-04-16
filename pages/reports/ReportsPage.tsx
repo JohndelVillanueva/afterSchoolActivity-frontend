@@ -263,20 +263,22 @@ const ReportsPage: React.FC = () => {
 
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
-      <Sidebar
-        onCollapsedChange={handleSidebarToggle}
-        open={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-      />
+      <div className="print:hidden">
+        <Sidebar
+          onCollapsedChange={handleSidebarToggle}
+          open={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+        />
+      </div>
       <div
         className={`flex-1 min-h-screen transition-all duration-300 ease-in-out ${
           sidebarCollapsed ? "md:ml-16" : "md:ml-64"
         } w-full`}
       >
-        {MobileTopBar}
+        <div className="print:hidden">{MobileTopBar}</div>
 
         {/* Header Section */}
-        <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200/60 py-6 px-6 lg:px-8 shadow-sm w-full">
+        <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200/60 py-6 px-6 lg:px-8 shadow-sm w-full print:hidden">
           <div className="w-full">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between">
               <div className="flex-1">
@@ -328,7 +330,7 @@ const ReportsPage: React.FC = () => {
         <main className="p-6 lg:p-8 w-full">
           <div className="w-full">
             {/* Controls Card */}
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-6 w-full">
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-6 w-full print:hidden">
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div className="flex-1">
                   <div className="relative">
@@ -448,7 +450,7 @@ const ReportsPage: React.FC = () => {
             </div>
 
             {/* Table Card */}
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden w-full">
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden w-full print:shadow-none print:border-0">
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-16 w-full">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
@@ -646,7 +648,7 @@ const ReportsPage: React.FC = () => {
 
               {/* Pagination */}
               {!loading && paginatedRecords.length > 0 && (
-                <div className="px-6 py-4 border-t border-gray-200 bg-gray-50/50">
+                <div className="px-6 py-4 border-t border-gray-200 bg-gray-50/50 print:hidden">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
                     <div className="text-sm text-gray-700">
                       Showing{" "}
@@ -748,6 +750,27 @@ const ReportsPage: React.FC = () => {
           </div>
         </main>
       </div>
+      <style>{`
+        @media print {
+          body {
+            background: #fff !important;
+          }
+
+          .print\\:hidden {
+            display: none !important;
+          }
+
+          table {
+            width: 100% !important;
+          }
+
+          th,
+          td {
+            color: #000 !important;
+            background: #fff !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };

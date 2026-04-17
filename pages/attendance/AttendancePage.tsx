@@ -612,6 +612,15 @@ const fetchStudents = useCallback((activityId?: string) => {
     setErrorMessage(null);
   }, [studentId, selectedActivity]);
 
+  useEffect(() => {
+    if (!errorMessage) return;
+    const timeoutId = window.setTimeout(() => {
+      setErrorMessage(null);
+    }, 2000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [errorMessage]);
+
   return (
     <div className={`min-h-screen flex bg-${BG_COLOR}`}>
       <Sidebar

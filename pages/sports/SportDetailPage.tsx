@@ -15,8 +15,6 @@ const SportDetailPage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false); // New: mobile sidebar state
   const [activity, setActivity] = useState<Activity | undefined>(location.state?.activity);
   const [students, setStudents] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   // Fetch activity by ID if not present (e.g., on refresh)
   useEffect(() => {
@@ -32,8 +30,6 @@ const SportDetailPage = () => {
   useEffect(() => {
     if (!activity?.id && !id) return;
     const activityId = activity?.id || Number(id);
-    setLoading(true);
-    setError(null);
     fetch(`${API_BASE_URL}/activities/${activityId}/enrolled-students`)
       .then(res => res.json())
       .then(data => {
@@ -41,14 +37,10 @@ const SportDetailPage = () => {
           setStudents(data.data);
         } else {
           setStudents([]);
-          setError(data.error || 'Failed to fetch students');
         }
-        setLoading(false);
       })
-      .catch(err => {
+      .catch(() => {
         setStudents([]);
-        setError('Failed to fetch students');
-        setLoading(false);
       });
   }, [activity?.id, id]);
 
@@ -115,7 +107,7 @@ const SportDetailPage = () => {
             <div>
               <h1 className="text-xl md:text-2xl font-light text-gray-900 ">{activity.name}</h1>
               <p className="text-gray-500 text-sm mt-1">
-                {activity.dayOfWeek} • {activity.location || 'No location'}
+                {activity.location || 'No location'}
               </p>
             </div>
             <button
@@ -210,24 +202,8 @@ const SportDetailPage = () => {
                   <span className="text-gray-900 text-right">{activity.description || 'No description'}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Day:</span>
-                  <span className="text-gray-900">{activity.dayOfWeek}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Start Time:</span>
-                  <span className="text-gray-900">{new Date(activity.startTime).toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">End Time:</span>
-                  <span className="text-gray-900">{new Date(activity.endTime).toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between">
                   <span className="text-gray-500">Location:</span>
-                  <span className="text-gray-900">Westfields International School</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Rate:</span>
-                  <span className="text-gray-900">{activity.rate !== undefined ? new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(Number(activity.rate)) : 'N/A'}</span>
+                  <span className="text-gray-900">{activity.location || 'No location'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">Coach:</span>

@@ -13,13 +13,8 @@ const CreateSportModal: React.FC<CreateSportModalProps> = ({ show, onClose, onCr
   const [newSport, setNewSport] = useState({
     name: '',
     description: '',
-    dayOfWeek: '',
-    startTime: '',
-    endTime: '',
-    location: 'Westfields International School',
     coachName: '',
     photo: '',
-    rate: '',
   });
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -46,11 +41,10 @@ const CreateSportModal: React.FC<CreateSportModalProps> = ({ show, onClose, onCr
   }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
+    const { name, value } = e.target;
     setNewSport(prev => ({
       ...prev,
-      [name]: name === 'rate' ? Number(value) : value,
-      location: 'Westfields International School',
+      [name]: value,
     }));
   };
 
@@ -92,7 +86,7 @@ const CreateSportModal: React.FC<CreateSportModalProps> = ({ show, onClose, onCr
       const response = await fetch(`${API_BASE_URL}/createSport`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...newSport, rate: Number(newSport.rate) }),
+        body: JSON.stringify(newSport),
       });
       const result = await response.json();
       if (result.success) {
@@ -103,13 +97,8 @@ const CreateSportModal: React.FC<CreateSportModalProps> = ({ show, onClose, onCr
         setNewSport({
           name: '',
           description: '',
-          dayOfWeek: '',
-          startTime: '',
-          endTime: '',
-          location: 'Westfields International School',
           coachName: '',
           photo: '',
-          rate: 0,
         });
       } else {
         setError(result.error || 'Failed to create sport. Please try again.');
@@ -216,63 +205,6 @@ const CreateSportModal: React.FC<CreateSportModalProps> = ({ show, onClose, onCr
               />
             </div>
 
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-900">
-                Day of Week <span className="text-gray-900">*</span>
-              </label>
-              <input
-                type="text"
-                name="dayOfWeek"
-                value={newSport.dayOfWeek}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:border-gray-900 transition-colors"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-900">
-                Rate (₱) <span className="text-gray-900">*</span>
-              </label>
-              <input
-                type="number"
-                name="rate"
-                value={newSport.rate}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:border-gray-900 transition-colors"
-                required
-                min="0"
-                step="0.01"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-900">
-                Start Time <span className="text-gray-900">*</span>
-              </label>
-              <input
-                type="datetime-local"
-                name="startTime"
-                value={newSport.startTime}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:border-gray-900 transition-colors"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-900">
-                End Time <span className="text-gray-900">*</span>
-              </label>
-              <input
-                type="datetime-local"
-                name="endTime"
-                value={newSport.endTime}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:border-gray-900 transition-colors"
-                required
-              />
-            </div>
           </div>
 
           {/* Photo Upload */}
@@ -280,7 +212,7 @@ const CreateSportModal: React.FC<CreateSportModalProps> = ({ show, onClose, onCr
             <label className="block text-sm font-medium text-gray-900">Photo</label>
             <div className="flex flex-col md:flex-row gap-4 items-start">
               <div
-                className="w-full md:w-1/2 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 p-6 cursor-pointer hover:border-gray-900 transition-colors"
+                className="w-full max-w-[340px] h-40 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 bg-gray-50/30 cursor-pointer hover:border-gray-400 transition-colors"
                 onClick={() => fileInputRef.current?.click()}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
@@ -296,10 +228,10 @@ const CreateSportModal: React.FC<CreateSportModalProps> = ({ show, onClose, onCr
                     <span>Uploading...</span>
                   </div>
                 ) : newSport.photo ? (
-                  <img src={`${API_BASE_URL}${newSport.photo}`} alt="Sport" className="w-32 h-24 object-cover mb-2 border border-gray-300" />
+                  <img src={`${API_BASE_URL}${newSport.photo}`} alt="Sport" className="w-32 h-24 object-cover border border-gray-300" />
                 ) : (
                   <div className="text-center">
-                    <svg className="w-12 h-12 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-11 h-11 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                     <span className="text-sm text-gray-500">Click or drag a photo here</span>

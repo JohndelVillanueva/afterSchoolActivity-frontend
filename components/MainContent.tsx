@@ -1,16 +1,25 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import CreateSportModal from "../modals/CreateSportModal";
-import type { Activity} from "../src/types/types";
-import { API_BASE_URL } from "../src/types/types";
 import EditSportModal from "../modals/EditSportModal";
+import type { Activity } from "../src/types/types";
+import { API_BASE_URL } from "../src/types/types";
+
+// ✅ Import your actual image (Adjust path if your folder is named differently, e.g., "../assets/...")
+import defaultSportImage from "../src/assets/deh54s1-25929919-c63d-4834-ba80-c3a00fe2fbcc.png";  
+
+// ✅ Helper function to get sport image with fallback
+const getSportImage = (sport: Activity | null): string => {
+  if (sport?.photo) return `${API_BASE_URL}${sport.photo}`;
+  return defaultSportImage;
+};
 
 interface MainContentProps {
   setActiveCategory: React.Dispatch<React.SetStateAction<string>>;
   filteredActivities: Activity[];
   showCreateModal: boolean;
   setShowCreateModal: React.Dispatch<React.SetStateAction<boolean>>;
-  handleCreateSport: () => void; // Changed to no arguments
+  handleCreateSport: () => void;
   onActivityClick?: (activity: Activity) => void;
   sidebarCollapsed?: boolean;
   success?: string | null;
@@ -28,20 +37,19 @@ const MainContent: React.FC<MainContentProps> = ({
   filteredActivities,
   showCreateModal,
   setShowCreateModal,
-  handleCreateSport, // Now this should work without arguments
+  handleCreateSport,
   onActivityClick,
-  // sidebarCollapsed = false,
+  sidebarCollapsed = false,
   success,
   error,
   setSuccess,
   setError,
   handleEditSport,
-  // These props are declared but not used in this component directly
   showEditModal,
   setShowEditModal,
   selectedSport,
   handleUpdateSport,
-  setActiveCategory, // Add this since it's in the interface
+  setActiveCategory,
 }) => {
   const navigate = useNavigate();
 
@@ -53,9 +61,8 @@ const MainContent: React.FC<MainContentProps> = ({
     }
   };
 
-  // Prevent event propagation for edit button clicks
   const handleEditClick = (e: React.MouseEvent, activity: Activity) => {
-    e.stopPropagation(); // Prevent triggering the parent click
+    e.stopPropagation();
     handleEditSport(activity);
   };
 
@@ -90,16 +97,16 @@ const MainContent: React.FC<MainContentProps> = ({
       {(success || error) && (
         <div className="px-8 pt-4">
           {success && (
-            <div className="mb-2 flex items-center justify-between bg-green-100 border border-green-300 text-green-800 rounded p-2">
-              <span>{success}</span>
+            <div className="mb-2 flex items-center justify-between bg-green-100 border border-green-300 text-green-800 rounded-lg p-3">
+              <span className="text-sm font-medium">{success}</span>
               {setSuccess && (
                 <button onClick={() => setSuccess(null)} className="ml-2 text-green-700 hover:text-green-900">&times;</button>
               )}
             </div>
           )}
           {error && (
-            <div className="mb-2 flex items-center justify-between bg-red-100 border border-red-300 text-red-800 rounded p-2">
-              <span>{error}</span>
+            <div className="mb-2 flex items-center justify-between bg-red-100 border border-red-300 text-red-800 rounded-lg p-3">
+              <span className="text-sm font-medium">{error}</span>
               {setError && (
                 <button onClick={() => setError(null)} className="ml-2 text-red-700 hover:text-red-900">&times;</button>
               )}
@@ -107,7 +114,7 @@ const MainContent: React.FC<MainContentProps> = ({
           )}
         </div>
       )}
-      
+
       {/* Activities Grid */}
       <main className="p-3 md:p-6 bg-white min-h-[60vh]">
         {filteredActivities.length > 0 ? (
@@ -115,62 +122,43 @@ const MainContent: React.FC<MainContentProps> = ({
             {filteredActivities.map((activity) => (
               <div
                 key={activity.id}
-                className="group cursor-pointer relative" // Added relative for positioning
+                className="group cursor-pointer relative"
                 onClick={() => handleActivityClick(activity)}
               >
-                {/* Edit Icon Button - positioned at top right of card */}
+                {/* Edit Icon Button */}
                 <button
                   onClick={(e) => handleEditClick(e, activity)}
                   className="absolute top-2 right-2 p-2 bg-white/80 hover:bg-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-blue-500 z-10 shadow-sm hover:shadow-md"
                   aria-label={`Edit ${activity.name}`}
                   title="Edit sport"
                 >
-                  <svg 
-                    className="w-4 h-4 text-gray-600 hover:text-blue-600" 
-                    fill="none" 
-                    stroke="currentColor" 
+                  <svg
+                    className="w-4 h-4 text-gray-600 hover:text-blue-600"
+                    fill="none"
+                    stroke="currentColor"
                     viewBox="0 0 24 24"
                   >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth={2} 
-                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" 
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                     />
                   </svg>
                 </button>
 
-                <div className="h-full flex flex-col border border-gray-100 hover:border-gray-200 p-3 transition-colors rounded-lg">
-                  <div className="aspect-[4/3] bg-gray-50 mb-3 flex items-center justify-center overflow-hidden rounded">
-                    {activity.photo ? (
-                      (() => {
-                        console.log('[DEBUG] Activity photo URL:', activity.photo);
-                        return (
-                          <img 
-                            src={`${API_BASE_URL}${activity.photo}`} 
-                            alt={activity.name}
-                            className="w-full h-full object-cover"
-                            onError={(e) => console.error('[DEBUG] Image failed to load:', activity.photo, e)}
-                            onLoad={() => console.log('[DEBUG] Image loaded successfully:', activity.photo)}
-                          />
-                        );
-                      })()
-                    ) : (
-                      <svg
-                        className="w-8 h-8 text-gray-300 group-hover:text-gray-400 transition-colors"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={1}
-                          d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"
-                        />
-                      </svg>
-                    )}
+                <div className="h-full flex flex-col border border-gray-100 hover:border-gray-200 p-3 transition-colors rounded-xl">
+                  <div className="aspect-[4/3] bg-gray-50 mb-3 flex items-center justify-center overflow-hidden rounded-lg">
+                    <img
+                      src={getSportImage(activity)}
+                      alt={activity.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Ultimate fallback: If the database image is broken AND the imported image fails, show this
+                        const target = e.target as HTMLImageElement;
+                        target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' fill='none'%3E%3Crect width='400' height='300' fill='%2366746f'/%3E%3Ccircle cx='200' cy='150' r='50' fill='%23ffffff' opacity='0.15'/%3E%3Ctext x='200' y='155' text-anchor='middle' fill='white' font-size='16' opacity='0.5' font-family='sans-serif'%3ENo Image%3C/text%3E%3C/svg%3E";
+                      }}
+                    />
                   </div>
                   <h3 className="text-base font-medium text-gray-900 mb-1">
                     {activity.name}
@@ -180,7 +168,7 @@ const MainContent: React.FC<MainContentProps> = ({
                   </p>
                   <div className="mt-auto space-y-1 text-xs">
                     <p className="text-gray-400">
-                      {activity.dayOfWeek} • {new Date(activity.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - {new Date(activity.endTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                      {activity.dayOfWeek} • {new Date(activity.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(activity.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
                     <div className="flex justify-between">
                       <span className="text-gray-400 truncate">{activity.location || 'No location'}</span>
@@ -223,13 +211,13 @@ const MainContent: React.FC<MainContentProps> = ({
 
       {/* Edit Sport Modal */}
       {showEditModal && selectedSport && (
-      <EditSportModal
-        show={showEditModal}
-        onClose={() => setShowEditModal(false)}
-        sport={selectedSport}
-        onUpdate={handleUpdateSport}
-      />
-    )}
+        <EditSportModal
+          show={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          sport={selectedSport}
+          onUpdate={handleUpdateSport}
+        />
+      )}
       {/* Create Sport Modal */}
       <CreateSportModal
         show={showCreateModal}

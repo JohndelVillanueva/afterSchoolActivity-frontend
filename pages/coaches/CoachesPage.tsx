@@ -5,10 +5,10 @@ import toast from 'react-hot-toast';
 import { Toaster } from 'react-hot-toast';
 
 // --- PROFESSIONAL DESIGN CONSTANTS ---
-const PRIMARY_COLOR = 'blue-600';
-const PRIMARY_LIGHT = 'blue-50';
-const TEXT_COLOR = 'gray-800';
-const BG_COLOR = 'gray-50';
+// const PRIMARY_COLOR = 'blue-600';
+// const PRIMARY_LIGHT = 'blue-50';
+// const TEXT_COLOR = 'gray-800';
+// const BG_COLOR = 'gray-50';
 
 interface Coach {
   id: number;

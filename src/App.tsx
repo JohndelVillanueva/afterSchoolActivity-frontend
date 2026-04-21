@@ -11,7 +11,7 @@ import LandingPage from '../components/landingpage/LandingPage';
 import LoginPage from '../components/landingpage/LoginPage';
 import RegisterPage from '../components/landingpage/RegistrationPage';
 import { ToastProvider } from '../components/ToastProvider';
-
+import AllUsers from '../pages/users/AllUsersPage';
 function App() {
   return (
     <ToastProvider>
@@ -29,6 +29,7 @@ function App() {
             <Route path="/sports/:name" element={<SportDetailPage />} />
             <Route path="/sports" element={<SportsPage />} />
             <Route path="/attendance" element={<AttendancePage />} />
+            <Route path="/users" element={<AllUsers />} />
           </Routes>
         </div>
       </Router>

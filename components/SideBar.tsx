@@ -30,6 +30,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onCollapsedChange, open = false, onCl
     { id: 'sports', name: 'Sports Activities', icon: '⚽', href: '/sports' },
     { id: 'students', name: 'Students', icon: '👥', href: '/students' },
     { id: 'coaches', name: 'Coaches', icon: '🏃', href: '/coaches' },
+    { id: 'users', name: 'All Users', icon: '👤', href: '/users' }, // ADDED HERE
     { id: 'attendance', name: 'Attendance', icon: '💳', href: '/attendance' },
     { id: 'calendar', name: 'Calendar', icon: '📅', href: '/calendar' },
     { id: 'reports', name: 'Reports', icon: '📈', href: '/reports' },

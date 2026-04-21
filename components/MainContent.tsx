@@ -39,7 +39,7 @@ const MainContent: React.FC<MainContentProps> = ({
   setShowCreateModal,
   handleCreateSport,
   onActivityClick,
-  sidebarCollapsed = false,
+  // sidebarCollapsed = false,
   success,
   error,
   setSuccess,
@@ -49,7 +49,7 @@ const MainContent: React.FC<MainContentProps> = ({
   setShowEditModal,
   selectedSport,
   handleUpdateSport,
-  setActiveCategory,
+  // setActiveCategory,
 }) => {
   const navigate = useNavigate();
 

@@ -73,13 +73,13 @@ const QuickMarkView: React.FC<QuickMarkViewProps> = ({
   const presentCount = todayRecords.filter((r) => r.status === "present").length;
   const absentCount = todayRecords.filter((r) => r.status === "absent").length;
 
-  const isStudentMarkedToday = (studentRfid: number | string) => {
-    return attendanceRecords.some(
-      (record) =>
-        String(record.rfid).trim() === String(studentRfid).trim() &&
-        record.date?.slice(0, 10) === today
-    );
-  };
+  // const isStudentMarkedToday = (studentRfid: number | string) => {
+  //   return attendanceRecords.some(
+  //     (record) =>
+  //       String(record.rfid).trim() === String(studentRfid).trim() &&
+  //       record.date?.slice(0, 10) === today
+  //   );
+  // };
 
   const getStudentRecord = (studentRfid: number | string) => {
     return attendanceRecords.find(

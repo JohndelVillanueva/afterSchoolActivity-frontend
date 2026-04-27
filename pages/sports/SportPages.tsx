@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import Sidebar from '../../components/SideBar';
 import MainContent from '../../components/MainContent';
 import type { Activity } from '../../src/types/types';
@@ -21,11 +21,7 @@ const SportPages = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sportsActivities, setSportsActivities] = useState<Activity[]>([]);
 
-  useEffect(() => {
-    fetchSports();
-  }, []);
-
-  const fetchSports = () => {
+  const fetchSports = useCallback(() => {
     fetch(`${API_BASE_URL}/getAllSports`)
       .then(res => res.json())
       .then(result => {
@@ -36,14 +32,18 @@ const SportPages = () => {
         }
       })
       .catch(() => setSportsActivities([]));
-  };
+  }, []);
 
-  const handleEditSport = (sport: Activity) => {
+  useEffect(() => {
+    fetchSports();
+  }, [fetchSports]);
+
+  const handleEditSport = useCallback((sport: Activity) => {
     setSelectedSport(sport);
     setShowEditModal(true);
-  };
+  }, []);
 
-  const handleUpdateSport = (updatedSport: Activity) => {
+  const handleUpdateSport = useCallback((updatedSport: Activity) => {
     fetch(`${API_BASE_URL}/updateSport`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -60,17 +60,17 @@ const SportPages = () => {
         setShowEditModal(false);
         setSelectedSport(null);
       });
-  };
+  }, [fetchSports]);
 
-  const handleCreateSport = () => {
+  const handleCreateSport = useCallback(() => {
     fetchSports();
-  };
+  }, [fetchSports]);
 
-  const handleSidebarToggle = (collapsed: boolean) => {
+  const handleSidebarToggle = useCallback((collapsed: boolean) => {
     setSidebarCollapsed(collapsed);
-  };
+  }, []);
 
-  const filteredActivities = sportsActivities;
+  const filteredActivities = useMemo(() => sportsActivities, [sportsActivities]);
 
   const MobileTopBar = (
     <div className="md:hidden flex items-center bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-30">

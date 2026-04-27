@@ -66,6 +66,7 @@ const STYLES = {
 const initialFormState: FormState = {
   fname: "", lname: "", email: "", rfid: "", sessions: "", activityId: "",
 };
+const PAGE_SIZE = 20;
 
 // --- HELPER FUNCTIONS ---
 
@@ -290,9 +291,10 @@ const CreateStudentModal: React.FC<{
                 </div>
               </div>
 
+              {/* EMAIL FIELD - NOW EDITABLE (removed the disabled prop) */}
               <div>
                 <label className={`${STYLES.label}`}>Email</label>
-                <input type="email" name="email" value={formState.email} onChange={onInputChange} className={`${STYLES.inputBase} disabled:bg-gray-50 disabled:text-gray-500`} disabled={!!existingStudent} placeholder="student@example.com" />
+                <input type="email" name="email" value={formState.email} onChange={onInputChange} className={`${STYLES.inputBase} placeholder:text-gray-400`} placeholder="student@example.com" />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -353,6 +355,7 @@ const StudentsPage: React.FC = () => {
   const [showViewEditModal, setShowViewEditModal] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
   const [expandedSessions, setExpandedSessions] = useState<Set<number>>(new Set());
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Handlers
   const handleSidebarToggle = (collapsed: boolean) => setSidebarCollapsed(collapsed);
@@ -369,20 +372,25 @@ const StudentsPage: React.FC = () => {
   const fetchStudents = () => {
     setLoading(true);
     setError(null);
-    fetch(`${API_BASE_URL}/getAllUsers`)
+    // Use the dedicated students endpoint
+    fetch(`${API_BASE_URL}/getAllStudents`)
       .then(res => res.json())
       .then(result => {
+        console.log('API Response:', result); // Debug log
         if (result.success) {
-          const studentUsers = (result.data || []).filter((user: any) => {
-            const pos = user.position?.toLowerCase();
-            return (!pos || pos === "student") && user.isEnrolledInAfterSchool;
-          });
-          setStudents(studentUsers);
-        } else setError("Failed to load students.");
+          // The backend now returns all the session data
+          setStudents(result.data || []);
+        } else {
+          setError("Failed to load students.");
+        }
       })
-      .catch(() => setError("Failed to load students."))
+      .catch((err) => {
+        console.error('Fetch error:', err);
+        setError("Failed to load students.");
+      })
       .finally(() => setLoading(false));
   };
+  
 
   const fetchActivities = () => {
     setLoadingActivities(true);
@@ -399,6 +407,25 @@ const StudentsPage: React.FC = () => {
   const filteredStudents = useMemo(() => 
     students.filter(s => `${s.fname} ${s.lname}`.toLowerCase().includes(search.toLowerCase())),
   [students, search]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredStudents.length / PAGE_SIZE));
+  const paginatedStudents = useMemo(() => {
+    const startIndex = (currentPage - 1) * PAGE_SIZE;
+    return filteredStudents.slice(startIndex, startIndex + PAGE_SIZE);
+  }, [filteredStudents, currentPage]);
+
+  const startEntry = filteredStudents.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+  const endEntry = Math.min(currentPage * PAGE_SIZE, filteredStudents.length);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   // Modal Handlers
   const handleViewEditStudent = (id: number) => { setSelectedStudentId(id); setShowViewEditModal(true); };
@@ -585,7 +612,7 @@ const StudentsPage: React.FC = () => {
                     <th className="px-6 py-3.5 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr></thead>
                   <tbody className="divide-y divide-gray-50">
-                    {filteredStudents.map((student) => (
+                    {paginatedStudents.map((student) => (
                       <tr key={student.id} className={`hover:bg-blue-50/30 transition-colors duration-150 ${expandedSessions.has(student.id) ? 'bg-blue-50/20' : ''}`}>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-3">
@@ -628,15 +655,55 @@ const StudentsPage: React.FC = () => {
                 </table>
               </div>
               <div className="px-6 py-3.5 bg-gray-50/50 border-t border-gray-100">
-                <p className="text-xs text-gray-400">
-                  Showing <span className="font-semibold text-gray-600">{filteredStudents.length}</span> of <span className="font-semibold text-gray-600">{students.length}</span> students
-                  {search && (
-                    <button onClick={() => setSearch("")} className="ml-2 text-blue-600 hover:text-blue-700 font-medium inline-flex items-center gap-1">
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                      Clear search
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                  <p className="text-xs text-gray-400">
+                    Showing <span className="font-semibold text-gray-600">{startEntry}-{endEntry}</span> of <span className="font-semibold text-gray-600">{filteredStudents.length}</span> students
+                    {search && (
+                      <button onClick={() => setSearch("")} className="ml-2 text-blue-600 hover:text-blue-700 font-medium inline-flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                        Clear search
+                      </button>
+                    )}
+                  </p>
+
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                      className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Previous
                     </button>
-                  )}
-                </p>
+
+                    {Array.from({ length: totalPages }, (_, index) => index + 1)
+                      .filter((page) => page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1)
+                      .map((page, index, arr) => (
+                        <React.Fragment key={page}>
+                          {index > 0 && arr[index - 1] !== page - 1 && (
+                            <span className="px-1 text-xs text-gray-400">...</span>
+                          )}
+                          <button
+                            onClick={() => setCurrentPage(page)}
+                            className={`min-w-[32px] px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
+                              currentPage === page
+                                ? "bg-blue-600 border-blue-600 text-white"
+                                : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        </React.Fragment>
+                      ))}
+
+                    <button
+                      onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                      disabled={currentPage === totalPages}
+                      className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           )}

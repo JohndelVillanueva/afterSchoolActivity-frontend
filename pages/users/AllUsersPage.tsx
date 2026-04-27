@@ -9,11 +9,15 @@ interface User {
   id: number;
   rfid?: string;
   fname: string;
+  mname?: string;  // Added middle name to match backend
   lname: string;
+  fullName?: string;  // Added fullName for convenience
   email?: string;
+  mobile?: string;    // Added mobile
   type?: string; // 'student', 'coach', 'admin'
   position?: string;
-  // Optional: Additional fields if your API returns them
+  status?: string;    // Added status
+  role?: string;      // Added role
 }
 
 const AllUsersPage: React.FC = () => {
@@ -24,6 +28,11 @@ const AllUsersPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("All");
+  
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [totalPages, setTotalPages] = useState(1);
 
   const handleSidebarToggle = (collapsed: boolean) => {
     setSidebarCollapsed(collapsed);
@@ -56,13 +65,18 @@ const AllUsersPage: React.FC = () => {
     fetchUsers();
   }, []);
 
+  // Reset to page 1 when search or filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, roleFilter]);
+
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
       // 1. Filter by Role
       const matchesRole = roleFilter === "All" || user.type === roleFilter;
       
       // 2. Filter by Search
-      const fullName = `${user.fname} ${user.lname}`.toLowerCase();
+      const fullName = `${user.fname} ${user.mname ? user.mname + ' ' : ''}${user.lname}`.toLowerCase();
       const matchesSearch = fullName.includes(search.toLowerCase()) || 
                            (user.email && user.email.toLowerCase().includes(search.toLowerCase())) ||
                            (user.rfid && user.rfid.includes(search));
@@ -70,6 +84,70 @@ const AllUsersPage: React.FC = () => {
       return matchesRole && matchesSearch;
     });
   }, [users, search, roleFilter]);
+
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
+  
+  // Update total pages when filtered users change
+  useEffect(() => {
+    setTotalPages(Math.ceil(filteredUsers.length / itemsPerPage));
+  }, [filteredUsers, itemsPerPage]);
+
+  // Change page
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+  
+  // Go to next page
+  const nextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+  
+  // Go to previous page
+  const prevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  // Change items per page
+  const handleItemsPerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setItemsPerPage(Number(e.target.value));
+    setCurrentPage(1);
+  };
+
+  // Generate page numbers to display
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    const maxPagesToShow = 5;
+    
+    if (totalPages <= maxPagesToShow) {
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      const startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+      const endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+      
+      if (startPage > 1) {
+        pageNumbers.push(1);
+        if (startPage > 2) pageNumbers.push('...');
+      }
+      
+      for (let i = startPage; i <= endPage; i++) {
+        pageNumbers.push(i);
+      }
+      
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) pageNumbers.push('...');
+        pageNumbers.push(totalPages);
+      }
+    }
+    
+    return pageNumbers;
+  };
 
   // --- HELPERS ---
   const getRoleBadge = (type: string) => {
@@ -83,6 +161,11 @@ const AllUsersPage: React.FC = () => {
       default:
         return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  // Helper function for initials with null safety
+  const getInitials = (fname?: string, lname?: string) => {
+    return `${fname?.[0] || ''}${lname?.[0] || ''}`.toUpperCase() || '?';
   };
 
   // Mobile Top Bar
@@ -196,6 +279,26 @@ const AllUsersPage: React.FC = () => {
               )}
             </div>
 
+            {/* Items per page selector */}
+            <div className="relative w-full md:w-32">
+              <select
+                value={itemsPerPage}
+                onChange={handleItemsPerPageChange}
+                className="w-full pl-3.5 pr-8 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 appearance-none transition-all text-sm text-gray-700 cursor-pointer"
+              >
+                <option value={5}>5 / page</option>
+                <option value={10}>10 / page</option>
+                <option value={25}>25 / page</option>
+                <option value={50}>50 / page</option>
+                <option value={100}>100 / page</option>
+              </select>
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+
             {/* Filter Dropdown */}
             {/* <div className="relative w-full md:w-48">
               <select
@@ -259,99 +362,149 @@ const AllUsersPage: React.FC = () => {
               </p>
             </div>
           ) : (
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200/60 overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-100">
-                  <thead>
-                    <tr className="bg-gray-50/80">
-                      <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                        User
-                      </th>
-                      <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                        RFID
-                      </th>
-                      <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">
-                        Email
-                      </th>
-                      <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                        Role
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50">
-                    {filteredUsers.map((user) => (
-                      <tr
-                        key={user.id}
-                        className="hover:bg-indigo-50/30 transition-colors duration-150"
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-3">
-                            <div className="relative">
-                              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold shadow-md shadow-indigo-500/20">
-                                {`${user.fname?.[0] || ""}${user.lname?.[0] || ""}`.toUpperCase()}
-                              </div>
-                            </div>
-                            <div>
-                              <div className="text-sm font-semibold text-gray-900">
-                                {user.fname} {user.lname}
-                              </div>
-                              <div className="text-xs text-gray-400 font-mono">#{user.id}</div>
-                            </div>
-                          </div>
-                        </td>
-
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-medium bg-gray-50 text-gray-600 border border-gray-200/60">
-                            <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                            </svg>
-                            {user.rfid || "—"}
-                          </span>
-                        </td>
-
-                        <td className="px-6 py-4 whitespace-nowrap hidden lg:table-cell">
-                          {user.email ? (
-                            <span className="text-sm text-gray-600 truncate block max-w-[200px]">
-                              {user.email}
-                            </span>
-                          ) : (
-                            <span className="text-sm text-gray-300">—</span>
-                          )}
-                        </td>
-
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${getRoleBadge(user.type || 'user')}`}>
-                            {(user.type || user.position || 'User').charAt(0).toUpperCase() + (user.type || user.position || 'User').slice(1)}
-                          </span>
-                        </td>
+            <>
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-200/60 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-100">
+                    <thead>
+                      <tr className="bg-gray-50/80">
+                        <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                          User
+                        </th>
+                        <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                          RFID
+                        </th>
+                        <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">
+                          Email
+                        </th>
+                        <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                          Role
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {currentItems.map((user) => (
+                        <tr
+                          key={user.id}
+                          className="hover:bg-indigo-50/30 transition-colors duration-150"
+                        >
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center gap-3">
+                              <div className="relative">
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold shadow-md shadow-indigo-500/20">
+                                  {getInitials(user.fname, user.lname)}
+                                </div>
+                              </div>
+                              <div>
+                                <div className="text-sm font-semibold text-gray-900">
+                                  {user.fname} {user.mname ? user.mname + ' ' : ''}{user.lname}
+                                </div>
+                                <div className="text-xs text-gray-400 font-mono">#{user.id}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-medium bg-gray-50 text-gray-600 border border-gray-200/60">
+                              <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                              </svg>
+                              {user.rfid || "—"}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap hidden lg:table-cell">
+                            {user.email ? (
+                              <span className="text-sm text-gray-600 truncate block max-w-[200px]">
+                                {user.email}
+                              </span>
+                            ) : (
+                              <span className="text-sm text-gray-300">—</span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${getRoleBadge(user.type || 'user')}`}>
+                              {(user.type || user.position || 'User').charAt(0).toUpperCase() + (user.type || user.position || 'User').slice(1)}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination Info */}
+                <div className="px-6 py-3.5 bg-gray-50/50 border-t border-gray-100 flex items-center justify-between flex-wrap gap-3">
+                  <p className="text-xs text-gray-400">
+                    Showing <span className="font-semibold text-gray-600">{indexOfFirstItem + 1}</span> to{" "}
+                    <span className="font-semibold text-gray-600">{Math.min(indexOfLastItem, filteredUsers.length)}</span> of{" "}
+                    <span className="font-semibold text-gray-600">{filteredUsers.length}</span> users
+                    {(search || roleFilter !== 'All') && (
+                      <button
+                        onClick={() => {
+                          setSearch("");
+                          setRoleFilter("All");
+                        }}
+                        className="ml-2 text-indigo-600 hover:text-indigo-700 font-medium inline-flex items-center gap-1"
+                      >
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        Clear filters
+                      </button>
+                    )}
+                  </p>
+                </div>
               </div>
 
-              {/* Pagination Info */}
-              <div className="px-6 py-3.5 bg-gray-50/50 border-t border-gray-100 flex items-center justify-between">
-                <p className="text-xs text-gray-400">
-                  Showing <span className="font-semibold text-gray-600">{filteredUsers.length}</span> of{" "}
-                  <span className="font-semibold text-gray-600">{users.length}</span> users
-                  {(search || roleFilter !== 'All') && (
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex justify-center items-center gap-2 mt-6">
+                  <button
+                    onClick={prevPage}
+                    disabled={currentPage === 1}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                      currentPage === 1
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300'
+                    }`}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  
+                  {getPageNumbers().map((page, index) => (
                     <button
-                      onClick={() => {
-                        setSearch("");
-                        setRoleFilter("All");
-                      }}
-                      className="ml-2 text-indigo-600 hover:text-indigo-700 font-medium inline-flex items-center gap-1"
+                      key={index}
+                      onClick={() => typeof page === 'number' && paginate(page)}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                        currentPage === page
+                          ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
+                          : page === '...'
+                          ? 'bg-transparent text-gray-400 cursor-default'
+                          : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300'
+                      }`}
+                      disabled={page === '...'}
                     >
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                      Clear filters
+                      {page}
                     </button>
-                  )}
-                </p>
-              </div>
-            </div>
+                  ))}
+                  
+                  <button
+                    onClick={nextPage}
+                    disabled={currentPage === totalPages}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                      currentPage === totalPages
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300'
+                    }`}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </main>
       </div>

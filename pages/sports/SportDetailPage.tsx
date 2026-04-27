@@ -6,13 +6,22 @@ import type { Activity } from '../../src/types/types';
 import RegistrationModal from '../../modals/RegistrationModal';
 import { API_BASE_URL } from '../../src/types/types';
 
+// ✅ Import the same default image from MainContent
+import defaultSportImage from "../../src/assets/deh54s1-25929919-c63d-4834-ba80-c3a00fe2fbcc.png";
+
+// ✅ Helper function to get sport image with fallback (same as MainContent)
+const getSportImage = (activity: Activity | null): string => {
+  if (activity?.photo) return `${API_BASE_URL}${activity.photo}`;
+  return defaultSportImage;
+};
+
 const SportDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const navigate = useNavigate();
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false); // New: mobile sidebar state
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activity, setActivity] = useState<Activity | undefined>(location.state?.activity);
   const [students, setStudents] = useState<any[]>([]);
 
@@ -105,9 +114,9 @@ const SportDetailPage = () => {
         <header className="border-b border-gray-100 py-4 px-4 md:py-8 md:px-8">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-xl md:text-2xl font-light text-gray-900 ">{activity.name}</h1>
+              <h1 className="text-xl md:text-2xl font-light text-gray-900">{activity.name}</h1>
               <p className="text-gray-500 text-sm mt-1">
-                {activity.location || 'No location'}
+                {/* {activity.location || 'No location'} */}
               </p>
             </div>
             <button
@@ -172,28 +181,16 @@ const SportDetailPage = () => {
               <h2 className="text-lg font-light text-gray-900 mb-4">Activity Details</h2>
               
               <div className="aspect-[4/3] bg-gray-50 mb-4 flex items-center justify-center rounded-md overflow-hidden">
-                {activity.photo ? (
-                  <img 
-                    src={`${API_BASE_URL}${activity.photo}`} 
-                    alt={activity.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <svg
-                    className="w-10 h-10 text-gray-300"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1}
-                      d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"
-                    />
-                  </svg>
-                )}
+                <img 
+                  src={getSportImage(activity)} 
+                  alt={activity.name}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    // Ultimate fallback: If the image fails to load, show a placeholder
+                    const target = e.target as HTMLImageElement;
+                    target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' fill='none'%3E%3Crect width='400' height='300' fill='%2366746f'/%3E%3Ccircle cx='200' cy='150' r='50' fill='%23ffffff' opacity='0.15'/%3E%3Ctext x='200' y='155' text-anchor='middle' fill='white' font-size='16' opacity='0.5' font-family='sans-serif'%3ENo Image%3C/text%3E%3C/svg%3E";
+                  }}
+                />
               </div>
 
               <div className="space-y-3 text-sm">

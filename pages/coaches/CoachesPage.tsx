@@ -3,6 +3,7 @@ import Sidebar from '../../components/SideBar';
 import { API_BASE_URL } from '../../src/types/types';
 import toast from 'react-hot-toast';
 import { Toaster } from 'react-hot-toast';
+import ViewEditCoachModal from '../../modals/ViewEditCoachModal';
 
 // --- PROFESSIONAL DESIGN CONSTANTS ---
 // const PRIMARY_COLOR = 'blue-600';
@@ -61,6 +62,10 @@ const CoachesPage: React.FC = () => {
   const [checkingRfid, setCheckingRfid] = useState(false);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loadingActivities, setLoadingActivities] = useState(false);
+  
+  // View/Edit Modal State
+  const [showViewEditModal, setShowViewEditModal] = useState(false);
+  const [selectedCoachId, setSelectedCoachId] = useState<number | null>(null);
 
   const handleSidebarToggle = (collapsed: boolean) => {
     setSidebarCollapsed(collapsed);
@@ -109,6 +114,22 @@ const CoachesPage: React.FC = () => {
         .includes(search.toLowerCase())
     );
   }, [coaches, search]);
+
+  // View/Edit Modal Handlers
+  const handleViewEditCoach = (id: number) => {
+    setSelectedCoachId(id);
+    setShowViewEditModal(true);
+  };
+
+  const handleViewEditModalClose = () => {
+    setShowViewEditModal(false);
+    setSelectedCoachId(null);
+  };
+
+  const handleCoachUpdateSuccess = () => {
+    fetchCoaches(); // Refresh the coaches list
+    handleViewEditModalClose();
+  };
 
   // Mobile Top Bar
   const MobileTopBar = (
@@ -423,6 +444,16 @@ const CoachesPage: React.FC = () => {
         }}
       />
 
+      {/* View/Edit Coach Modal */}
+      {showViewEditModal && selectedCoachId && (
+        <ViewEditCoachModal
+          isOpen={showViewEditModal}
+          onClose={handleViewEditModalClose}
+          coachId={selectedCoachId}
+          onUpdateSuccess={handleCoachUpdateSuccess}
+        />
+      )}
+
       <div className={`flex-1 min-h-screen transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'} flex flex-col`}>
         {MobileTopBar}
 
@@ -661,6 +692,7 @@ const CoachesPage: React.FC = () => {
                         {/* Actions */}
                         <td className="px-6 py-4 whitespace-nowrap text-right">
                           <button
+                            onClick={() => handleViewEditCoach(coach.id)}
                             className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 active:bg-blue-800 transition-colors duration-150 shadow-sm"
                             title="View/Edit Coach Details"
                           >
@@ -891,8 +923,7 @@ const CoachesPage: React.FC = () => {
                         name="email"
                         value={form.email}
                         onChange={handleInputChange}
-                        className="block w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all text-sm disabled:bg-gray-50 disabled:text-gray-500 placeholder:text-gray-400"
-                        disabled={!!existingCoach}
+                        className="block w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all text-sm placeholder:text-gray-400"
                         placeholder="coach@example.com"
                       />
                     </div>

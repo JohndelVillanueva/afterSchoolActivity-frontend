@@ -1,15 +1,17 @@
-import React from "react";
+import React, { useEffect } from "react";
 import type { Activity } from "../../src/types/types";
 
 interface Student {
   id: number;
-  rfid: number;
+  rfid: number | string;  // Allow both number and string
   fname: string;
   mname: string;
   lname: string;
   position: string;
   email: string;
   isEnrolledInAfterSchool?: number;
+  grade?: string;
+  section?: string;
 }
 
 interface AttendanceRecord {
@@ -55,6 +57,14 @@ const QuickMarkView: React.FC<QuickMarkViewProps> = ({
 }) => {
   const today = new Date().toLocaleDateString("en-CA");
 
+  // Debug logging to see what data is being received
+  useEffect(() => {
+    console.log('[QuickMarkView] Students received:', students);
+    console.log('[QuickMarkView] Students count:', students.length);
+    console.log('[QuickMarkView] First student sample:', students[0]);
+    console.log('[QuickMarkView] Attendance records:', attendanceRecords.length);
+  }, [students, attendanceRecords]);
+
   // Get the name of the currently selected activity
   const selectedActivityName =
     activities.find((a) => a.id.toString() === selectedActivity)?.name || "";
@@ -73,20 +83,18 @@ const QuickMarkView: React.FC<QuickMarkViewProps> = ({
   const presentCount = todayRecords.filter((r) => r.status === "present").length;
   const absentCount = todayRecords.filter((r) => r.status === "absent").length;
 
-  // const isStudentMarkedToday = (studentRfid: number | string) => {
-  //   return attendanceRecords.some(
-  //     (record) =>
-  //       String(record.rfid).trim() === String(studentRfid).trim() &&
-  //       record.date?.slice(0, 10) === today
-  //   );
-  // };
-
+  // ✅ FIX: Improved comparison that handles both number and string RFID
   const getStudentRecord = (studentRfid: number | string) => {
-    return attendanceRecords.find(
-      (record) =>
-        String(record.rfid).trim() === String(studentRfid).trim() &&
-        record.date?.slice(0, 10) === today
-    );
+    // Convert student RFID to string for comparison
+    const studentRfidStr = String(studentRfid).trim();
+    
+    return attendanceRecords.find((record) => {
+      // Convert record RFID to string for comparison
+      const recordRfidStr = String(record.rfid || '').trim();
+      const recordDate = record.date?.slice(0, 10);
+      
+      return recordRfidStr === studentRfidStr && recordDate === today;
+    });
   };
 
   return (
@@ -143,7 +151,10 @@ const QuickMarkView: React.FC<QuickMarkViewProps> = ({
               <option value="">Choose activity</option>
               {activities.map((activity: Activity) => (
                 <option key={activity.id} value={activity.id}>
-                  {activity.name} ({activity.dayOfWeek}, {formatTime(activity.startTime)} - {formatTime(activity.endTime)})
+                  {activity.name} 
+                  {/* (
+                    {activity.dayOfWeek}, {formatTime(activity.startTime)} - {formatTime(activity.endTime)}
+                  ) */}
                 </option>
               ))}
             </select>
@@ -156,7 +167,7 @@ const QuickMarkView: React.FC<QuickMarkViewProps> = ({
             <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
               <div className="w-6 h-6 rounded-md bg-emerald-100 flex items-center justify-center">
                 <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                 </svg>
               </div>
               Mark Attendance

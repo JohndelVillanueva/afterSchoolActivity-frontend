@@ -24,4 +24,4 @@ export interface RegistrationModalProps {
 
 // API base URL type for Vite environment variable
 // Use the environment variable
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://10.128.2.112:3000';

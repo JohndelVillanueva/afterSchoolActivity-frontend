@@ -1,20 +1,38 @@
 import React, { useState } from 'react';
+import type { Activity } from '../../src/types/types';
 
-const SportsSection = () => {
-  const [activeSport, setActiveSport] = useState('all');
+interface SportsSectionProps {
+  sports: Activity[];
+  loading: boolean;
+  error: string | null;
+}
 
-  const sports = [
-    { id: 1, name: 'Football', category: 'team', icon: '⚽' },
-    { id: 2, name: 'Basketball', category: 'team', icon: '🏀' },
-    { id: 3, name: 'Tennis', category: 'individual', icon: '🎾' },
-    { id: 4, name: 'Swimming', category: 'individual', icon: '🏊' },
-    { id: 5, name: 'Running', category: 'individual', icon: '🏃' },
-    { id: 6, name: 'Cycling', category: 'individual', icon: '🚴' }
-  ];
+type SportFilter = 'all' | 'withCoach' | 'withoutCoach';
 
-  const filteredSports = activeSport === 'all' 
-    ? sports 
-    : sports.filter(sport => sport.category === activeSport);
+const getSportIcon = (name: string): string => {
+  const normalized = name.toLowerCase();
+  if (normalized.includes('foot')) return '⚽';
+  if (normalized.includes('basket')) return '🏀';
+  if (normalized.includes('tennis')) return '🎾';
+  if (normalized.includes('swim')) return '🏊';
+  if (normalized.includes('run') || normalized.includes('track')) return '🏃';
+  if (normalized.includes('cycle') || normalized.includes('bike')) return '🚴';
+  if (normalized.includes('volley')) return '🏐';
+  if (normalized.includes('badminton')) return '🏸';
+  return '🏅';
+};
+
+const SportsSection: React.FC<SportsSectionProps> = ({ sports, loading, error }) => {
+  const [activeSport, setActiveSport] = useState<SportFilter>('all');
+
+  const filteredSports =
+    activeSport === 'all'
+      ? sports
+      : sports.filter((sport) =>
+          activeSport === 'withCoach'
+            ? Boolean(sport.coachName && sport.coachName.trim())
+            : !sport.coachName || !sport.coachName.trim()
+        );
 
   return (
     <section id="sports" className="sports-section">
@@ -32,28 +50,44 @@ const SportsSection = () => {
             All Sports
           </button>
           <button 
-            className={`filter-btn ${activeSport === 'team' ? 'active' : ''}`}
-            onClick={() => setActiveSport('team')}
+            className={`filter-btn ${activeSport === 'withCoach' ? 'active' : ''}`}
+            onClick={() => setActiveSport('withCoach')}
           >
-            Team Sports
+            With Coach
           </button>
           <button 
-            className={`filter-btn ${activeSport === 'individual' ? 'active' : ''}`}
-            onClick={() => setActiveSport('individual')}
+            className={`filter-btn ${activeSport === 'withoutCoach' ? 'active' : ''}`}
+            onClick={() => setActiveSport('withoutCoach')}
           >
-            Individual Sports
+            No Coach Yet
           </button>
         </div>
 
         <div className="sports-grid">
-          {filteredSports.map(sport => (
-            <div key={sport.id} className="sport-card">
-              <div className="sport-icon">{sport.icon}</div>
-              <h3 className="sport-name">{sport.name}</h3>
-              <p className="sport-category">{sport.category} Sport</p>
-              <button className="btn btn-outline">Explore</button>
+          {loading ? (
+            <div className="sport-card">
+              <div className="sport-name">Loading sports...</div>
             </div>
-          ))}
+          ) : error ? (
+            <div className="sport-card">
+              <div className="sport-name">Could not load sports right now.</div>
+            </div>
+          ) : filteredSports.length === 0 ? (
+            <div className="sport-card">
+              <div className="sport-name">No sports found for this filter.</div>
+            </div>
+          ) : (
+            filteredSports.map((sport) => (
+              <div key={sport.id} className="sport-card">
+                <div className="sport-icon">{getSportIcon(sport.name)}</div>
+                <h3 className="sport-name">{sport.name}</h3>
+                <p className="sport-category">
+                  {sport.coachName?.trim() ? `Coach: ${sport.coachName}` : 'Coach assignment pending'}
+                </p>
+                <button className="btn btn-outline">Explore</button>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </section>

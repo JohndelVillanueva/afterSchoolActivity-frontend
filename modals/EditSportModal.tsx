@@ -93,23 +93,45 @@ const EditSportModal: React.FC<EditSportModalProps> = ({ show, onClose, sport, o
     e.preventDefault();
     if (!editedSport) return;
 
+    // Validate required fields
+    if (!editedSport.name) {
+      setError('Activity name is required');
+      return;
+    }
+
     setError(null);
     setUpdating(true);
+    
     try {
+      // Format the data to match what your backend expects (removed rate)
+      const payload = {
+        id: editedSport.id,
+        name: editedSport.name,
+        description: editedSport.description || '',
+        coachName: editedSport.coachName || '',
+        photo: editedSport.photo || '',
+      };
+
+      console.log('[DEBUG] Sending update payload:', payload);
+
       const response = await fetch(`${API_BASE_URL}/updateSport`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editedSport),
+        body: JSON.stringify(payload),
       });
+      
       const result = await response.json();
+      console.log('[DEBUG] Update response:', result);
+      
       if (result.success) {
         success('Sport updated successfully!');
-        onUpdate(editedSport);
+        onUpdate(result.data);
         onClose();
       } else {
         setError(result.error || 'Failed to update sport. Please try again.');
       }
-    } catch {
+    } catch (err) {
+      console.error('Error updating sport:', err);
       setError('Failed to update sport. Please try again.');
     } finally {
       setUpdating(false);
@@ -247,16 +269,13 @@ const EditSportModal: React.FC<EditSportModalProps> = ({ show, onClose, sport, o
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Description <span className="text-red-500">*</span>
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Description</label>
             <textarea
               name="description"
-              value={editedSport.description}
+              value={editedSport.description || ''}
               onChange={handleInputChange}
               className="block w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all text-sm placeholder:text-gray-400 resize-none"
               rows={3}
-              required
             />
           </div>
 

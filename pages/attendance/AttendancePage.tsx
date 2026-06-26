@@ -8,13 +8,15 @@ import ScannerView from "./ScannerView";
 
 interface Student {
   id: number;
-  rfid: number;
+  rfid: number;  // Make sure this matches the backend (number, not string)
   fname: string;
   mname: string;
   lname: string;
   position: string;
   email: string;
   isEnrolledInAfterSchool?: number;
+  grade?: string;  // Add optional grade
+  section?: string;  // Add optional section
 }
 
 interface StudentWithSession extends Student {
@@ -164,34 +166,73 @@ const AttendancePage: React.FC = () => {
     []
   );
 
-  const fetchStudents = useCallback((activityId?: string) => {
-    setStudentsLoading(true);
+// AttendancePage.tsx - Fix the fetchStudents function
 
-    const url = activityId
-      ? `${API_BASE_URL}/getStudentsByActivity/${activityId}`
-      : `${API_BASE_URL}/getAllUsers`;
+const fetchStudents = useCallback((activityId?: string) => {
+  setStudentsLoading(true);
+  console.log('[DEBUG] fetchStudents called with activityId:', activityId);
 
-    fetch(url)
-      .then((res) => res.json())
-      .then((result) => {
-        if (result.success) {
-          if (activityId) {
-            setStudents(result.data);
+  const url = activityId
+    ? `${API_BASE_URL}/getStudentsByActivity/${activityId}`
+    : `${API_BASE_URL}/getAllUsers`;
+
+  console.log('[DEBUG] Fetching from URL:', url);
+
+  fetch(url)
+    .then((res) => res.json())
+    .then((result) => {
+      console.log('[DEBUG] fetchStudents response:', result);
+      
+      if (result.success) {
+        if (activityId) {
+          // For activity-specific endpoint
+          let studentsData = [];
+          
+          if (Array.isArray(result.data)) {
+            studentsData = result.data;
+            console.log('[DEBUG] Result.data is an array with length:', studentsData.length);
+          } else if (result.data && Array.isArray(result.data.students)) {
+            studentsData = result.data.students;
+            console.log('[DEBUG] Result.data.students is an array with length:', studentsData.length);
+          } else if (result.data && Array.isArray(result.data.data)) {
+            studentsData = result.data.data;
+            console.log('[DEBUG] Result.data.data is an array with length:', studentsData.length);
           } else {
-            const studentUsers = result.data.filter(
-              (user: Student) =>
-                user.position?.toLowerCase() === "student" &&
-                user.isEnrolledInAfterSchool === 1
-            );
-            setStudents(studentUsers);
+            console.error('[ERROR] Unexpected data structure:', result.data);
+            studentsData = [];
           }
+          
+          console.log('[DEBUG] Setting students array with', studentsData.length, 'students');
+          console.log('[DEBUG] First student sample:', studentsData[0]);
+          
+          setStudents(studentsData);
         } else {
-          setStudents([]);
+          // For all users endpoint, filter for students
+          const allUsers = result.data || [];
+          const studentUsers = allUsers.filter(
+            (user: any) =>
+              user.type === 'student' || 
+              user.position?.toLowerCase() === "student" ||
+              user.isEnrolledInAfterSchool === 1 ||
+              user.isEnrolledInAfterSchool === true
+          );
+          console.log('[DEBUG] Filtered students from all users:', studentUsers.length);
+          setStudents(studentUsers);
         }
-      })
-      .catch(() => setStudents([]))
-      .finally(() => setStudentsLoading(false));
-  }, []);
+      } else {
+        console.error('[ERROR] Failed to fetch students:', result.error);
+        setStudents([]);
+      }
+    })
+    .catch((err) => {
+      console.error('[ERROR] Error fetching students:', err);
+      setStudents([]);
+    })
+    .finally(() => {
+      setStudentsLoading(false);
+      console.log('[DEBUG] studentsLoading set to false');
+    });
+}, []);
 
   useEffect(() => {
     if (selectedActivity) {

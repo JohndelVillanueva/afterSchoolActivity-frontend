@@ -700,3 +700,126 @@
 .auth-footer {
   margin-top: auto;
 }
+
+/* -------- Login Design Refresh -------- */
+.auth-page {
+  background:
+    radial-gradient(circle at 10% 15%, rgba(129, 140, 248, 0.28), transparent 40%),
+    radial-gradient(circle at 90% 85%, rgba(59, 130, 246, 0.2), transparent 42%),
+    linear-gradient(135deg, #0f172a 0%, #1e3a8a 52%, #312e81 100%);
+  padding: 24px;
+}
+
+.login-width {
+  max-width: 480px;
+}
+
+.back-btn {
+  top: -64px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.25s ease;
+}
+
+.back-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+  transform: translateY(-1px);
+}
+
+.back-arrow {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.auth-card.login-card {
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 24px 60px rgba(2, 6, 23, 0.35);
+}
+
+.auth-header h2 {
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  font-size: clamp(1.8rem, 3.5vw, 2.15rem);
+}
+
+.auth-subtitle {
+  color: #64748b;
+  font-size: 0.98rem;
+}
+
+.form-group label {
+  color: #334155;
+  font-size: 0.92rem;
+}
+
+.form-group input {
+  border: 1.5px solid #dbe3ef;
+  border-radius: 12px;
+  background: #f8fafc;
+  transition: all 0.2s ease;
+}
+
+.form-group input:focus {
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.13);
+}
+
+.form-group input.error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.12);
+}
+
+.forgot-link {
+  font-weight: 600;
+}
+
+.btn.btn-primary {
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+  box-shadow: 0 12px 24px rgba(37, 99, 235, 0.28);
+}
+
+.btn.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 28px rgba(37, 99, 235, 0.36);
+}
+
+.btn:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+.error-message.submit-error {
+  border-radius: 12px;
+  font-size: 0.92rem;
+}
+
+.password-toggle {
+  border-radius: 8px;
+}
+
+.password-toggle:hover {
+  background-color: #e2e8f0;
+}
+
+@media (max-width: 480px) {
+  .login-width {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .back-btn {
+    top: -54px;
+    font-size: 0.9rem;
+  }
+}

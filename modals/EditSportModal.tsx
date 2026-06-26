@@ -26,7 +26,10 @@ const EditSportModal: React.FC<EditSportModalProps> = ({ show, onClose, sport, o
     if (!show) return;
 
     if (sport) {
-      setEditedSport(sport);
+      setEditedSport({
+        ...sport,
+        rate: Number(sport.rate) || 0,
+      });
     }
 
     setCoachesLoading(true);
@@ -50,7 +53,7 @@ const EditSportModal: React.FC<EditSportModalProps> = ({ show, onClose, sport, o
     const { name, value } = e.target;
     setEditedSport(prev => ({
       ...prev!,
-      [name]: value,
+      [name]: name === 'rate' ? (value === '' ? 0 : Number(value)) : value,
     }));
   };
 
@@ -93,23 +96,46 @@ const EditSportModal: React.FC<EditSportModalProps> = ({ show, onClose, sport, o
     e.preventDefault();
     if (!editedSport) return;
 
+    // Validate required fields
+    if (!editedSport.name) {
+      setError('Activity name is required');
+      return;
+    }
+
     setError(null);
     setUpdating(true);
+    
     try {
+      const payload = {
+        id: editedSport.id,
+        name: editedSport.name,
+        description: editedSport.description || '',
+        coachName: editedSport.coachName || '',
+        photo: editedSport.photo || '',
+        location: editedSport.location || '',
+        rate: editedSport.rate ?? 0,
+      };
+
+      console.log('[DEBUG] Sending update payload:', payload);
+
       const response = await fetch(`${API_BASE_URL}/updateSport`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editedSport),
+        body: JSON.stringify(payload),
       });
+      
       const result = await response.json();
+      console.log('[DEBUG] Update response:', result);
+      
       if (result.success) {
         success('Sport updated successfully!');
-        onUpdate(editedSport);
+        onUpdate(result.data);
         onClose();
       } else {
         setError(result.error || 'Failed to update sport. Please try again.');
       }
-    } catch {
+    } catch (err) {
+      console.error('Error updating sport:', err);
       setError('Failed to update sport. Please try again.');
     } finally {
       setUpdating(false);
@@ -247,17 +273,41 @@ const EditSportModal: React.FC<EditSportModalProps> = ({ show, onClose, sport, o
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Description <span className="text-red-500">*</span>
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Description</label>
             <textarea
               name="description"
-              value={editedSport.description}
+              value={editedSport.description || ''}
               onChange={handleInputChange}
               className="block w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all text-sm placeholder:text-gray-400 resize-none"
               rows={3}
-              required
             />
+          </div>
+
+          {/* Location & Rate */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Location</label>
+              <input
+                type="text"
+                name="location"
+                value={editedSport.location || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. Gymnasium, Field A"
+                className="block w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all text-sm placeholder:text-gray-400"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Rate (₱)</label>
+              <input
+                type="number"
+                name="rate"
+                min="0"
+                step="0.01"
+                value={editedSport.rate ?? 0}
+                onChange={handleInputChange}
+                className="block w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all text-sm"
+              />
+            </div>
           </div>
 
           {/* Photo */}

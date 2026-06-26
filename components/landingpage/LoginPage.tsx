@@ -1,19 +1,31 @@
-import React, { useState } from 'react';
+import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import './styling/AuthPages.css';
 
+type LoginFormData = {
+  email: string;
+  password: string;
+};
+
+type LoginErrors = {
+  email?: string;
+  password?: string;
+  submit?: string;
+};
+
 const LoginPage = () => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<LoginFormData>({
     email: '', // Can be email or username
     password: ''
   });
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<LoginErrors>({});
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    const name = e.target.name as keyof LoginFormData;
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -26,8 +38,8 @@ const LoginPage = () => {
     }
   };
 
-  const validateForm = () => {
-    const newErrors = {};
+  const validateForm = (): LoginErrors => {
+    const newErrors: LoginErrors = {};
 
     if (!formData.email) {
       newErrors.email = 'Email or Username is required';
@@ -40,7 +52,7 @@ const LoginPage = () => {
     return newErrors;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const newErrors = validateForm();
     
@@ -58,7 +70,7 @@ const LoginPage = () => {
       });
       console.log('Full form data:', formData);
       
-      const response = await fetch('http://10.128.2.112:3000/api/auth/login', {
+      const response = await fetch('http://10.128.0.133:3000/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -88,7 +100,7 @@ const LoginPage = () => {
     <div className="auth-page">
       <div className="auth-container login-width">
         <button className="back-btn" onClick={() => navigate('/')}>
-          ← Back to Home
+          <span className="back-arrow">←</span> Back to Home
         </button>
         
         <div className="auth-card login-card">
@@ -98,7 +110,7 @@ const LoginPage = () => {
               <span className="logo-text">Westfields International School</span>
             </div>
             <h2>Welcome Back!</h2>
-            <p>Sign in to access your sports dashboard</p>
+            <p className="auth-subtitle">Sign in to access your sports dashboard</p>
           </div>
 
           <form onSubmit={handleSubmit} className="auth-form">

@@ -3,6 +3,7 @@ import Sidebar from '../../components/SideBar';
 import { API_BASE_URL } from '../../src/types/types';
 import toast from 'react-hot-toast';
 import { Toaster } from 'react-hot-toast';
+import ViewEditCoachModal from '../../modals/ViewEditCoachModal';
 
 // --- PROFESSIONAL DESIGN CONSTANTS ---
 // const PRIMARY_COLOR = 'blue-600';
@@ -61,6 +62,10 @@ const CoachesPage: React.FC = () => {
   const [checkingRfid, setCheckingRfid] = useState(false);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loadingActivities, setLoadingActivities] = useState(false);
+  
+  // View/Edit Modal State
+  const [showViewEditModal, setShowViewEditModal] = useState(false);
+  const [selectedCoachId, setSelectedCoachId] = useState<number | null>(null);
 
   const handleSidebarToggle = (collapsed: boolean) => {
     setSidebarCollapsed(collapsed);
@@ -109,6 +114,22 @@ const CoachesPage: React.FC = () => {
         .includes(search.toLowerCase())
     );
   }, [coaches, search]);
+
+  // View/Edit Modal Handlers
+  const handleViewEditCoach = (id: number) => {
+    setSelectedCoachId(id);
+    setShowViewEditModal(true);
+  };
+
+  const handleViewEditModalClose = () => {
+    setShowViewEditModal(false);
+    setSelectedCoachId(null);
+  };
+
+  const handleCoachUpdateSuccess = () => {
+    fetchCoaches(); // Refresh the coaches list
+    handleViewEditModalClose();
+  };
 
   // Mobile Top Bar
   const MobileTopBar = (
@@ -423,11 +444,22 @@ const CoachesPage: React.FC = () => {
         }}
       />
 
-      <div className={`flex-1 min-h-screen transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'} flex flex-col`}>
+      {/* View/Edit Coach Modal */}
+      {showViewEditModal && selectedCoachId && (
+        <ViewEditCoachModal
+          isOpen={showViewEditModal}
+          onClose={handleViewEditModalClose}
+          coachId={selectedCoachId}
+          onUpdateSuccess={handleCoachUpdateSuccess}
+        />
+      )}
+
+      <div className={`flex-1 bg-gradient-to-br from-gray-50 to-white min-h-screen transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'}`}>
         {MobileTopBar}
 
-        {/* Page Header */}
-        <div className="px-4 md:px-8 pt-6 pb-2">
+        {/* Desktop Header */}
+        <header className="hidden md:block border-b border-gray-100 bg-white/80 backdrop-blur-sm sticky top-0 z-20">
+          <div className="px-8 py-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
@@ -452,10 +484,11 @@ const CoachesPage: React.FC = () => {
               <span>Add Coach</span>
             </button>
           </div>
-        </div>
+          </div>
+        </header>
 
         {/* Search Bar */}
-        <div className="px-4 md:px-8 py-4">
+        <div className="px-4 md:px-8 py-4 bg-white/80 border-b border-gray-100">
           <div className="relative max-w-md">
             <svg
               className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
@@ -486,7 +519,7 @@ const CoachesPage: React.FC = () => {
         </div>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto px-4 md:px-8 pb-8">
+        <main className="p-4 md:p-8 pb-8 min-h-[60vh]">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20">
               <div className="relative">
@@ -661,6 +694,7 @@ const CoachesPage: React.FC = () => {
                         {/* Actions */}
                         <td className="px-6 py-4 whitespace-nowrap text-right">
                           <button
+                            onClick={() => handleViewEditCoach(coach.id)}
                             className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 active:bg-blue-800 transition-colors duration-150 shadow-sm"
                             title="View/Edit Coach Details"
                           >
@@ -698,6 +732,12 @@ const CoachesPage: React.FC = () => {
             </div>
           )}
         </main>
+
+        <footer className="border-t border-gray-100 py-6 px-8 text-center md:text-left bg-white/80 backdrop-blur-sm">
+          <p className="text-gray-500 text-sm">
+            © {new Date().getFullYear()} School Sports Program. All rights reserved.
+          </p>
+        </footer>
 
         {/* Create Coach Modal */}
         {showModal && (
@@ -891,8 +931,7 @@ const CoachesPage: React.FC = () => {
                         name="email"
                         value={form.email}
                         onChange={handleInputChange}
-                        className="block w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all text-sm disabled:bg-gray-50 disabled:text-gray-500 placeholder:text-gray-400"
-                        disabled={!!existingCoach}
+                        className="block w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all text-sm placeholder:text-gray-400"
                         placeholder="coach@example.com"
                       />
                     </div>

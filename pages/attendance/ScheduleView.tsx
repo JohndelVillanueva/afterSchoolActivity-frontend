@@ -9,7 +9,7 @@ interface StudentWithSession {
   lname: string;
   email: string;
   grade: string;
-  enrolledDate: string;
+  enrolledDate: string; // This should be the date when student enrolled in this activity
   position: string;
   sessionsPurchased: number;
   sessionsAttended: number;
@@ -71,10 +71,28 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({
   goToNextDay,
   goToToday,
 }) => {
-  // ✅ FIX: Use local date instead of UTC
-  const today = new Date().toLocaleDateString("en-CA");
-  const isToday = selectedDate === today;
-  const isFutureDate = new Date(selectedDate + "T00:00:00") > new Date(today + "T00:00:00");
+  // Helper function to check if a date is before the student's enrollment date
+  const isDateBeforeEnrollment = (selectedDateStr: string, enrolledDateStr: string): boolean => {
+    if (!enrolledDateStr) return false;
+    
+    const selected = new Date(selectedDateStr + "T00:00:00");
+    const enrolled = new Date(enrolledDateStr + "T00:00:00");
+    
+    // Return true if selected date is before enrollment date
+    return selected < enrolled;
+  };
+
+  // Helper function to check if a date is a future date
+  const isFutureDate = (dateStr: string): boolean => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selected = new Date(dateStr + "T00:00:00");
+    return selected > today;
+  };
+
+  // Get today's date in YYYY-MM-DD format
+  const todayStr = new Date().toLocaleDateString("en-CA");
+  const isSelectedDateToday = selectedDate === todayStr;
 
   return (
     <div className="space-y-5">
@@ -126,7 +144,7 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({
                 <option value="">Choose activity</option>
                 {activities.map((activity: Activity) => (
                   <option key={activity.id} value={activity.id}>
-                    {activity.name} ({activity.dayOfWeek}, {formatTime(activity.startTime)} - {formatTime(activity.endTime)})
+                    {activity.name}
                   </option>
                 ))}
               </select>
@@ -156,7 +174,7 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({
               <button
                 onClick={goToToday}
                 className={`px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                  isToday
+                  isSelectedDateToday
                     ? "bg-blue-600 text-white shadow-sm"
                     : "border border-gray-200 text-gray-600 hover:bg-gray-50"
                 }`}
@@ -176,7 +194,7 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({
             </div>
             <div className="flex items-center gap-2 mt-1.5">
               <span className="text-xs text-gray-400">{formatDate(selectedDate)}</span>
-              {isFutureDate && (
+              {isFutureDate(selectedDate) && (
                 <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-amber-50 text-amber-700 rounded text-[10px] font-medium border border-amber-100">
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
@@ -184,7 +202,7 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({
                   Future date
                 </span>
               )}
-              {!isToday && !isFutureDate && (
+              {!isSelectedDateToday && !isFutureDate(selectedDate) && (
                 <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded text-[10px] font-medium border border-blue-100">
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -219,9 +237,11 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({
                 <div className="text-xs text-blue-700 leading-relaxed">
                   <p className="font-semibold mb-1">Attendance rules</p>
                   <ul className="space-y-0.5">
-                    <li>Each date is independent — mark attendance for any past or present date</li>
-                    <li>Future dates are view-only</li>
-                    <li>Cannot mark twice for the same date</li>
+                    <li>✓ Can mark attendance from enrollment date onwards</li>
+                    <li>✓ Each date is independent — mark attendance for any eligible date</li>
+                    <li>✗ Cannot mark for dates before enrollment</li>
+                    <li>✗ Cannot mark for future dates</li>
+                    <li>✗ Cannot mark twice for the same date</li>
                   </ul>
                 </div>
               </div>
@@ -274,6 +294,9 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({
                           Grade
                         </th>
                         <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                          Enrollment Date
+                        </th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">
                           Sessions
                         </th>
                         <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">
@@ -290,8 +313,20 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({
                         const progressPercent = student.sessionsPurchased
                           ? Math.min((student.sessionsAttended / student.sessionsPurchased) * 100, 100)
                           : 0;
-
-                        // ✅ FIX: Safe status text formatting
+                        
+                        // Check if selected date is before enrollment date
+                        const isBeforeEnrollment = isDateBeforeEnrollment(selectedDate, student.enrolledDate);
+                        const isFutureSelected = isFutureDate(selectedDate);
+                        
+                        // Determine if action buttons should be disabled
+                        const isDisabled = hasAttendanceOnThisDate || isFutureSelected || isBeforeEnrollment;
+                        
+                        // Get disabled reason for tooltip
+                        let disabledReason = "";
+                        if (hasAttendanceOnThisDate) disabledReason = "Already marked";
+                        else if (isFutureSelected) disabledReason = "Cannot mark for future dates";
+                        else if (isBeforeEnrollment) disabledReason = `Enrolled on ${formatDate(student.enrolledDate)}`;
+                        
                         const statusText = student.dateAttendanceStatus
                           ? student.dateAttendanceStatus.charAt(0).toUpperCase() + student.dateAttendanceStatus.slice(1)
                           : "";
@@ -306,6 +341,8 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({
                                     ? student.dateAttendanceStatus === "present"
                                       ? "bg-emerald-500"
                                       : "bg-red-500"
+                                    : isBeforeEnrollment
+                                    ? "bg-gray-400"
                                     : "bg-gradient-to-br from-blue-500 to-purple-600"
                                 }`}>
                                   {hasAttendanceOnThisDate ? (
@@ -336,6 +373,18 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({
                               <span className="text-sm text-gray-500">{student.grade || "—"}</span>
                             </td>
 
+                            {/* Enrollment Date */}
+                            <td className="px-4 py-3.5 text-center">
+                              <div className="flex flex-col items-center">
+                                <span className={`text-xs font-medium ${isBeforeEnrollment ? 'text-red-500' : 'text-gray-600'}`}>
+                                  {formatDate(student.enrolledDate)}
+                                </span>
+                                {isBeforeEnrollment && (
+                                  <span className="text-[10px] text-red-400 mt-0.5">Cannot mark</span>
+                                )}
+                              </div>
+                             </td>
+
                             {/* Sessions - Combined */}
                             <td className="px-4 py-3.5">
                               <div className="flex flex-col items-center gap-1.5">
@@ -362,7 +411,7 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({
                                   </span>
                                 </div>
                               </div>
-                            </td>
+                             </td>
 
                             {/* Status */}
                             <td className="px-4 py-3.5 text-center">
@@ -384,7 +433,6 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
                                       </svg>
                                     )}
-                                    {/* ✅ FIX: Use pre-computed statusText instead of optional chaining */}
                                     {statusText}
                                   </span>
                                   {student.dateAttendanceTime && (
@@ -397,22 +445,16 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({
                               ) : (
                                 <span className="text-xs text-gray-300">—</span>
                               )}
-                            </td>
+                             </td>
 
                             {/* Actions */}
                             <td className="px-5 py-3.5 whitespace-nowrap text-right">
                               <div className="flex items-center justify-end gap-1.5">
                                 <button
                                   onClick={() => onMarkAttendance(student, "present")}
-                                  disabled={hasAttendanceOnThisDate || isFutureDate}
+                                  disabled={isDisabled}
                                   className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-medium hover:bg-emerald-700 active:bg-emerald-800 disabled:bg-gray-100 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors duration-150 shadow-sm disabled:shadow-none"
-                                  title={
-                                    isFutureDate
-                                      ? "Cannot mark for future dates"
-                                      : hasAttendanceOnThisDate
-                                      ? "Already marked"
-                                      : "Mark present"
-                                  }
+                                  title={disabledReason}
                                 >
                                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
@@ -421,15 +463,9 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({
                                 </button>
                                 <button
                                   onClick={() => onMarkAttendance(student, "absent")}
-                                  disabled={hasAttendanceOnThisDate || isFutureDate}
+                                  disabled={isDisabled}
                                   className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-500 text-white rounded-lg text-xs font-medium hover:bg-red-600 active:bg-red-700 disabled:bg-gray-100 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors duration-150 shadow-sm disabled:shadow-none"
-                                  title={
-                                    isFutureDate
-                                      ? "Cannot mark for future dates"
-                                      : hasAttendanceOnThisDate
-                                      ? "Already marked"
-                                      : "Mark absent"
-                                  }
+                                  title={disabledReason}
                                 >
                                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
@@ -437,7 +473,7 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({
                                   Absent
                                 </button>
                               </div>
-                            </td>
+                             </td>
                           </tr>
                         );
                       })}
@@ -451,7 +487,7 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({
                 <div className="px-5 py-3 bg-gray-50/50 border-t border-gray-100">
                   <p className="text-xs text-gray-400">
                     {scheduleData.students.length} student{scheduleData.students.length !== 1 ? 's' : ''} enrolled
-                    {isFutureDate && (
+                    {isFutureDate(selectedDate) && (
                       <span className="ml-2 text-amber-500 font-medium">
                         View only — future date
                       </span>

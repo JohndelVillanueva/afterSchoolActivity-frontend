@@ -66,11 +66,9 @@ const STYLES = {
 const initialFormState: FormState = {
   fname: "", lname: "", email: "", rfid: "", sessions: "", activityId: "",
 };
+const PAGE_SIZE = 20;
 
 // --- HELPER FUNCTIONS ---
-
-// Helper to create an acronym from the activity name (e.g., "Basketball" -> "BAS")
-const getAcronym = (name: string) => (name || "ACT").substring(0, 3).toUpperCase();
 
 // --- HELPER COMPONENTS ---
 
@@ -92,16 +90,25 @@ const SessionDisplay: React.FC<{
       ? Math.min(((student.sessionsAttended ?? 0) / student.sessionsPurchased) * 100, 100) 
       : 0;
 
+    const activityName = sessions[0]?.activityName;
+
     return (
-      <div className="flex items-center w-full gap-3">
-        {/* Progress Bar: Takes full available width (flex-1) */}
-        <div className="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden">
-          <div className={`h-full rounded-full transition-all duration-500 ${getProgressColor(progress)}`} style={{ width: `${progress}%` }} />
-        </div>
-        
-        {/* Text: Fixed width to prevent shrinking the bar */}
-        <div className="flex-shrink-0 text-right text-xs font-semibold text-gray-600 w-[85px]">
-          {student.sessionsAttended ?? 0} / {student.sessionsPurchased ?? 0}
+      <div className="flex flex-col gap-1.5 w-full">
+        {activityName && (
+          <div className="text-xs font-semibold text-gray-700 truncate" title={activityName}>
+            {activityName}
+          </div>
+        )}
+        <div className="flex items-center w-full gap-3">
+          {/* Progress Bar: Takes full available width (flex-1) */}
+          <div className="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden">
+            <div className={`h-full rounded-full transition-all duration-500 ${getProgressColor(progress)}`} style={{ width: `${progress}%` }} />
+          </div>
+          
+          {/* Text: Fixed width to prevent shrinking the bar */}
+          <div className="flex-shrink-0 text-right text-xs font-semibold text-gray-600 w-[85px]">
+            {student.sessionsAttended ?? 0} / {student.sessionsPurchased ?? 0}
+          </div>
         </div>
       </div>
     );
@@ -162,25 +169,25 @@ const SessionDisplay: React.FC<{
             return (
               <div
                 key={session.id}
-                className="flex items-center gap-3 p-2 hover:bg-slate-50 rounded-lg transition-colors duration-200"
+                className="p-2 hover:bg-slate-50 rounded-lg transition-colors duration-200 space-y-2"
               >
-                {/* Acronym Badge: Fixed width (w-10) to ensure consistent bar lengths */}
-                <div className="flex-shrink-0 w-10 h-8 bg-blue-100 text-blue-700 rounded-md flex items-center justify-center text-xs font-bold border border-blue-200 shadow-sm">
-                  {getAcronym(session.activityName)}
+                <div
+                  className="text-xs font-semibold text-gray-800 truncate"
+                  title={session.activityName}
+                >
+                  {session.activityName}
                 </div>
-
-                {/* Progress Bar: Takes remaining space (flex-1) */}
-                <div className="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all duration-500 ${getProgressColor(sessionProgress)}`}
-                    style={{ width: `${sessionProgress}%` }}
-                  />
-                </div>
-
-                {/* Stats Text: Fixed width (w-[75px]) */}
-                <div className="flex-shrink-0 text-right text-xs font-semibold text-gray-600 w-[75px] leading-tight">
-                  <div>{session.sessionsAttended} attended</div>
-                  <div className="text-gray-400 font-normal text-[11px]">{session.sessionsPurchased} total</div>
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${getProgressColor(sessionProgress)}`}
+                      style={{ width: `${sessionProgress}%` }}
+                    />
+                  </div>
+                  <div className="flex-shrink-0 text-right text-xs font-semibold text-gray-600 w-[75px] leading-tight">
+                    <div>{session.sessionsAttended} attended</div>
+                    <div className="text-gray-400 font-normal text-[11px]">{session.sessionsPurchased} total</div>
+                  </div>
                 </div>
               </div>
             );
@@ -290,9 +297,10 @@ const CreateStudentModal: React.FC<{
                 </div>
               </div>
 
+              {/* EMAIL FIELD - NOW EDITABLE (removed the disabled prop) */}
               <div>
                 <label className={`${STYLES.label}`}>Email</label>
-                <input type="email" name="email" value={formState.email} onChange={onInputChange} className={`${STYLES.inputBase} disabled:bg-gray-50 disabled:text-gray-500`} disabled={!!existingStudent} placeholder="student@example.com" />
+                <input type="email" name="email" value={formState.email} onChange={onInputChange} className={`${STYLES.inputBase} placeholder:text-gray-400`} placeholder="student@example.com" />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -353,6 +361,7 @@ const StudentsPage: React.FC = () => {
   const [showViewEditModal, setShowViewEditModal] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
   const [expandedSessions, setExpandedSessions] = useState<Set<number>>(new Set());
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Handlers
   const handleSidebarToggle = (collapsed: boolean) => setSidebarCollapsed(collapsed);
@@ -369,20 +378,25 @@ const StudentsPage: React.FC = () => {
   const fetchStudents = () => {
     setLoading(true);
     setError(null);
-    fetch(`${API_BASE_URL}/getAllUsers`)
+    // Use the dedicated students endpoint
+    fetch(`${API_BASE_URL}/getAllStudents`)
       .then(res => res.json())
       .then(result => {
+        console.log('API Response:', result); // Debug log
         if (result.success) {
-          const studentUsers = (result.data || []).filter((user: any) => {
-            const pos = user.position?.toLowerCase();
-            return (!pos || pos === "student") && user.isEnrolledInAfterSchool;
-          });
-          setStudents(studentUsers);
-        } else setError("Failed to load students.");
+          // The backend now returns all the session data
+          setStudents(result.data || []);
+        } else {
+          setError("Failed to load students.");
+        }
       })
-      .catch(() => setError("Failed to load students."))
+      .catch((err) => {
+        console.error('Fetch error:', err);
+        setError("Failed to load students.");
+      })
       .finally(() => setLoading(false));
   };
+  
 
   const fetchActivities = () => {
     setLoadingActivities(true);
@@ -399,6 +413,25 @@ const StudentsPage: React.FC = () => {
   const filteredStudents = useMemo(() => 
     students.filter(s => `${s.fname} ${s.lname}`.toLowerCase().includes(search.toLowerCase())),
   [students, search]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredStudents.length / PAGE_SIZE));
+  const paginatedStudents = useMemo(() => {
+    const startIndex = (currentPage - 1) * PAGE_SIZE;
+    return filteredStudents.slice(startIndex, startIndex + PAGE_SIZE);
+  }, [filteredStudents, currentPage]);
+
+  const startEntry = filteredStudents.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+  const endEntry = Math.min(currentPage * PAGE_SIZE, filteredStudents.length);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   // Modal Handlers
   const handleViewEditStudent = (id: number) => { setSelectedStudentId(id); setShowViewEditModal(true); };
@@ -454,6 +487,7 @@ const StudentsPage: React.FC = () => {
         activityId: Number(form.activityId),
         sessionDate: selectedActivity?.startTime ? new Date(selectedActivity.startTime).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
         sessionsPurchased: Number(form.sessions),
+        isEnrolledInAfterSchool: true,
       };
 
       const res = await fetch(`${API_BASE_URL}/createStudent`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
@@ -503,7 +537,7 @@ const StudentsPage: React.FC = () => {
         <ViewEditStudentModal isOpen={showViewEditModal} onClose={handleViewEditModalClose} studentId={selectedStudentId} onUpdateSuccess={handleStudentUpdateSuccess} />
       )}
 
-      <div className={`flex-1 min-h-screen transition-all duration-300 ease-in-out ${sidebarCollapsed ? "md:ml-16" : "md:ml-64"} flex flex-col`}>
+      <div className={`flex-1 bg-gradient-to-br from-gray-50 to-white min-h-screen transition-all duration-300 ease-in-out ${sidebarCollapsed ? "md:ml-16" : "md:ml-64"}`}>
         
         {/* Mobile Header */}
         <div className="md:hidden sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-gray-200/60">
@@ -521,8 +555,9 @@ const StudentsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Page Header */}
-        <div className="px-4 md:px-8 pt-6 pb-2">
+        {/* Desktop Header */}
+        <header className="hidden md:block border-b border-gray-100 bg-white/80 backdrop-blur-sm sticky top-0 z-20">
+          <div className="px-8 py-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
@@ -537,10 +572,11 @@ const StudentsPage: React.FC = () => {
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg> Add Student
             </button>
           </div>
-        </div>
+          </div>
+        </header>
 
         {/* Search */}
-        <div className="px-4 md:px-8 py-4">
+        <div className="px-4 md:px-8 py-4 bg-white/80 border-b border-gray-100">
           <div className="relative max-w-md">
             <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
             <input type="text" placeholder="Search students..." value={search} onChange={e => setSearch(e.target.value)} className={`w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all text-sm placeholder:text-gray-400`} />
@@ -549,7 +585,7 @@ const StudentsPage: React.FC = () => {
         </div>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto px-4 md:px-8 pb-8">
+        <main className="p-4 md:p-8 pb-8 min-h-[60vh]">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20">
               <div className="relative"><div className="w-14 h-14 border-[3px] border-blue-100 rounded-full animate-spin border-t-blue-600"></div></div>
@@ -585,7 +621,7 @@ const StudentsPage: React.FC = () => {
                     <th className="px-6 py-3.5 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr></thead>
                   <tbody className="divide-y divide-gray-50">
-                    {filteredStudents.map((student) => (
+                    {paginatedStudents.map((student) => (
                       <tr key={student.id} className={`hover:bg-blue-50/30 transition-colors duration-150 ${expandedSessions.has(student.id) ? 'bg-blue-50/20' : ''}`}>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-3">
@@ -628,19 +664,65 @@ const StudentsPage: React.FC = () => {
                 </table>
               </div>
               <div className="px-6 py-3.5 bg-gray-50/50 border-t border-gray-100">
-                <p className="text-xs text-gray-400">
-                  Showing <span className="font-semibold text-gray-600">{filteredStudents.length}</span> of <span className="font-semibold text-gray-600">{students.length}</span> students
-                  {search && (
-                    <button onClick={() => setSearch("")} className="ml-2 text-blue-600 hover:text-blue-700 font-medium inline-flex items-center gap-1">
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                      Clear search
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                  <p className="text-xs text-gray-400">
+                    Showing <span className="font-semibold text-gray-600">{startEntry}-{endEntry}</span> of <span className="font-semibold text-gray-600">{filteredStudents.length}</span> students
+                    {search && (
+                      <button onClick={() => setSearch("")} className="ml-2 text-blue-600 hover:text-blue-700 font-medium inline-flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                        Clear search
+                      </button>
+                    )}
+                  </p>
+
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                      className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Previous
                     </button>
-                  )}
-                </p>
+
+                    {Array.from({ length: totalPages }, (_, index) => index + 1)
+                      .filter((page) => page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1)
+                      .map((page, index, arr) => (
+                        <React.Fragment key={page}>
+                          {index > 0 && arr[index - 1] !== page - 1 && (
+                            <span className="px-1 text-xs text-gray-400">...</span>
+                          )}
+                          <button
+                            onClick={() => setCurrentPage(page)}
+                            className={`min-w-[32px] px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
+                              currentPage === page
+                                ? "bg-blue-600 border-blue-600 text-white"
+                                : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        </React.Fragment>
+                      ))}
+
+                    <button
+                      onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                      disabled={currentPage === totalPages}
+                      className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           )}
         </main>
+
+        <footer className="border-t border-gray-100 py-6 px-8 text-center md:text-left bg-white/80 backdrop-blur-sm">
+          <p className="text-gray-500 text-sm">
+            © {new Date().getFullYear()} School Sports Program. All rights reserved.
+          </p>
+        </footer>
       </div>
 
       {/* Modals */}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import Sidebar from '../../components/SideBar';
 import MainContent from '../../components/MainContent';
 import type { Activity } from '../../src/types/types';
@@ -20,12 +20,9 @@ const SportPages = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sportsActivities, setSportsActivities] = useState<Activity[]>([]);
+  const [search, setSearch] = useState('');
 
-  useEffect(() => {
-    fetchSports();
-  }, []);
-
-  const fetchSports = () => {
+  const fetchSports = useCallback(() => {
     fetch(`${API_BASE_URL}/getAllSports`)
       .then(res => res.json())
       .then(result => {
@@ -36,14 +33,18 @@ const SportPages = () => {
         }
       })
       .catch(() => setSportsActivities([]));
-  };
+  }, []);
 
-  const handleEditSport = (sport: Activity) => {
+  useEffect(() => {
+    fetchSports();
+  }, [fetchSports]);
+
+  const handleEditSport = useCallback((sport: Activity) => {
     setSelectedSport(sport);
     setShowEditModal(true);
-  };
+  }, []);
 
-  const handleUpdateSport = (updatedSport: Activity) => {
+  const handleUpdateSport = useCallback((updatedSport: Activity) => {
     fetch(`${API_BASE_URL}/updateSport`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -60,17 +61,29 @@ const SportPages = () => {
         setShowEditModal(false);
         setSelectedSport(null);
       });
-  };
+  }, [fetchSports]);
 
-  const handleCreateSport = () => {
+  const handleCreateSport = useCallback(() => {
     fetchSports();
-  };
+  }, [fetchSports]);
 
-  const handleSidebarToggle = (collapsed: boolean) => {
+  const handleSidebarToggle = useCallback((collapsed: boolean) => {
     setSidebarCollapsed(collapsed);
-  };
+  }, []);
 
-  const filteredActivities = sportsActivities;
+  const filteredActivities = useMemo(() => {
+    if (!search.trim()) return sportsActivities;
+    const query = search.toLowerCase().trim();
+    const matches = (value?: string | null) =>
+      value?.toLowerCase().includes(query) ?? false;
+    return sportsActivities.filter(sport =>
+      matches(sport.name) ||
+      matches(sport.description) ||
+      matches(sport.coachName) ||
+      matches(sport.location) ||
+      matches(sport.dayOfWeek)
+    );
+  }, [sportsActivities, search]);
 
   const MobileTopBar = (
     <div className="md:hidden flex items-center bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-30">
@@ -107,6 +120,8 @@ const SportPages = () => {
           handleCreateSport={handleCreateSport}
           setActiveCategory={() => {}}
           filteredActivities={filteredActivities}
+          search={search}
+          onSearchChange={setSearch}
           sidebarCollapsed={sidebarCollapsed}
         />
       </div>

@@ -14,6 +14,8 @@ const CreateSportModal: React.FC<CreateSportModalProps> = ({ show, onClose, onCr
     description: '',
     coachName: '',
     photo: '',
+    location: '',
+    rate: 0,
   });
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -46,7 +48,7 @@ const CreateSportModal: React.FC<CreateSportModalProps> = ({ show, onClose, onCr
     const { name, value } = e.target;
     setNewSport(prev => ({
       ...prev,
-      [name]: value,
+      [name]: name === 'rate' ? (value === '' ? 0 : Number(value)) : value,
     }));
   };
 
@@ -104,7 +106,7 @@ const CreateSportModal: React.FC<CreateSportModalProps> = ({ show, onClose, onCr
         success('Sport created successfully!');
         onCreate();
         onClose();
-        setNewSport({ name: '', description: '', coachName: '', photo: '' });
+        setNewSport({ name: '', description: '', coachName: '', photo: '', location: '', rate: 0 });
       } else {
         setError(result.error || 'Failed to create sport. Please try again.');
       }
@@ -135,7 +137,7 @@ const CreateSportModal: React.FC<CreateSportModalProps> = ({ show, onClose, onCr
   const handleModalClose = () => {
     if (creating || uploading) return;
     setError(null);
-    setNewSport({ name: '', description: '', coachName: '', photo: '' });
+    setNewSport({ name: '', description: '', coachName: '', photo: '', location: '', rate: 0 });
     onClose();
   };
 
@@ -229,7 +231,7 @@ const CreateSportModal: React.FC<CreateSportModalProps> = ({ show, onClose, onCr
                 onChange={handleInputChange}
                 className="block w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 bg-white transition-all text-sm"
               >
-                <option value="">Select a coach (optional)</option>
+                <option value="">Select a coach (required)</option>
                 {coaches.map((coach: any) => (
                   <option key={coach.id} value={`${coach.fname} ${coach.lname}`}>
                     {coach.fname} {coach.lname}
@@ -253,6 +255,33 @@ const CreateSportModal: React.FC<CreateSportModalProps> = ({ show, onClose, onCr
               placeholder="Brief description of the activity..."
               required
             />
+          </div>
+
+          {/* Location & Rate */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Location</label>
+              <input
+                type="text"
+                name="location"
+                value={newSport.location}
+                onChange={handleInputChange}
+                placeholder="e.g. Gymnasium, Field A"
+                className="block w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all text-sm placeholder:text-gray-400"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Rate (₱)</label>
+              <input
+                type="number"
+                name="rate"
+                min="0"
+                step="0.01"
+                value={newSport.rate}
+                onChange={handleInputChange}
+                className="block w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all text-sm"
+              />
+            </div>
           </div>
 
           {/* Photo Upload */}

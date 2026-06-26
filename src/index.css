@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+:root {
+  --app-page-bg: #f3f4f6;
+}
+
 /* Ensure sidebar is visible */
 .sidebar {
   background-color: #374151 !important; /* gray-800 */
@@ -19,4 +23,14 @@
 body {
   margin: 0;
   padding: 0;
+  background: var(--app-page-bg);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.app-shell {
+  min-height: 100vh;
+  background-color: var(--app-page-bg);
 }

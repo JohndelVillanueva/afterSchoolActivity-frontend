@@ -106,7 +106,7 @@ const ScannerView: React.FC<ScannerViewProps> = ({
                 <option value="">Choose activity</option>
                 {activities.map((activity: Activity) => (
                   <option key={activity.id} value={activity.id}>
-                    {activity.name} ({activity.dayOfWeek})
+                    {activity.name} {/* ({activity.dayOfWeek}) */}
                   </option>
                 ))}
               </select>

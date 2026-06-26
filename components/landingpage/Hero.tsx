@@ -1,6 +1,23 @@
 import React from 'react';
 
-const Hero = () => {
+interface HeroProps {
+  stats: {
+    students: number;
+    sports: number;
+    coaches: number;
+  };
+  loading: boolean;
+  error: string | null;
+}
+
+const Hero: React.FC<HeroProps> = ({ stats, loading, error }) => {
+  const formatCount = (count: number): string => {
+    if (count >= 1000) {
+      return `${Math.round(count / 1000)}K+`;
+    }
+    return `${count}+`;
+  };
+
   return (
     <section id="home" className="hero">
       <div className="container">
@@ -18,18 +35,19 @@ const Hero = () => {
           </div>
           <div className="hero-stats">
             <div className="stat">
-              <div className="stat-number">50K+</div>
-              <div className="stat-label">Active Members</div>
+              <div className="stat-number">{loading ? '...' : formatCount(stats.students)}</div>
+              <div className="stat-label">Students</div>
             </div>
             <div className="stat">
-              <div className="stat-number">25+</div>
+              <div className="stat-number">{loading ? '...' : formatCount(stats.sports)}</div>
               <div className="stat-label">Sports</div>
             </div>
             <div className="stat">
-              <div className="stat-number">100+</div>
+              <div className="stat-number">{loading ? '...' : formatCount(stats.coaches)}</div>
               <div className="stat-label">Coaches</div>
             </div>
           </div>
+          {error ? <p className="hero-subtitle">Live stats unavailable at the moment.</p> : null}
         </div>
         <div className="hero-image">
           <div className="sports-illustration">

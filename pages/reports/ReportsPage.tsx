@@ -11,6 +11,9 @@ interface AttendanceRecord {
   status: "present" | "absent";
   rfid?: string;
   processedBy?: string | null;
+  sessionsPurchased?: number | null;
+  sessionsAttended?: number | null;
+  sessionsRemaining?: number | null;
 }
 
 const RECORDS_PER_PAGE = 12;
@@ -115,43 +118,51 @@ const ReportsPage: React.FC = () => {
     const recordProcessedBy = record.processedBy ? record.processedBy.toLowerCase() : "";
 
     const matchesSearch =
-      record.studentName.toLowerCase().includes(searchLower) ||
-      (record.rfid && record.rfid.includes(search)) ||
-      record.activity.toLowerCase().includes(searchLower) ||
-      record.status.toLowerCase().includes(searchLower) ||
-      recordDate.includes(searchLower) ||
-      recordTime.includes(searchLower) ||
-      recordProcessedBy.includes(searchLower) || // Add search for processedBy
-      record.date.includes(search); // Also search raw date format
+  record.studentName.toLowerCase().includes(searchLower) ||
+  (record.rfid && record.rfid.includes(search)) ||
+  record.activity.toLowerCase().includes(searchLower) ||
+  record.status.toLowerCase().includes(searchLower) ||
+  recordDate.includes(searchLower) ||
+  recordTime.includes(searchLower) ||
+  recordProcessedBy.includes(searchLower) ||
+  record.date.includes(search) ||
+  (record.sessionsRemaining != null &&
+    record.sessionsRemaining.toString().includes(search));
 
     const matchesStart = !startDate || record.date >= startDate;
     const matchesEnd = !endDate || record.date <= endDate;
     return matchesSearch && matchesStart && matchesEnd;
   });
 
- const sortedRecords = [...filteredRecords].sort((a, b) => {
-  let aVal: string | number = a[sortBy] ?? '';
-  let bVal: string | number = b[sortBy] ?? '';
-  
-  // Special handling for status to sort by priority
-  if (sortBy === 'status') {
-    const statusOrder = { 'present': 1, 'absent': 2 };
-    aVal = statusOrder[a.status as keyof typeof statusOrder] || 3;
-    bVal = statusOrder[b.status as keyof typeof statusOrder] || 3;
-  }
-  
-  // Special handling for processedBy to handle null values
-  if (sortBy === 'processedBy') {
-    aVal = a.processedBy || '';
-    bVal = b.processedBy || '';
-  }
-  
-  if (sortDir === 'asc') {
-    return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
-  } else {
-    return aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
-  }
-});
+  const sortedRecords = [...filteredRecords].sort((a, b) => {
+    let aVal: string | number = a[sortBy] ?? '';
+    let bVal: string | number = b[sortBy] ?? '';
+
+    // Special handling for status to sort by priority
+    if (sortBy === 'status') {
+      const statusOrder = { 'present': 1, 'absent': 2 };
+      aVal = statusOrder[a.status as keyof typeof statusOrder] || 3;
+      bVal = statusOrder[b.status as keyof typeof statusOrder] || 3;
+    }
+
+    // Special handling for processedBy to handle null values
+    if (sortBy === 'processedBy') {
+      aVal = a.processedBy || '';
+      bVal = b.processedBy || '';
+    }
+
+    // Special handling for sessionsRemaining to handle null values
+    if (sortBy === 'sessionsRemaining') {
+      aVal = a.sessionsRemaining ?? -1;
+      bVal = b.sessionsRemaining ?? -1;
+    }
+
+    if (sortDir === 'asc') {
+      return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+    } else {
+      return aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
+    }
+  });
 
   // Pagination logic
   const totalPages = Math.ceil(sortedRecords.length / RECORDS_PER_PAGE) || 1;
@@ -168,7 +179,10 @@ const ReportsPage: React.FC = () => {
       "Status",
       "Date",
       "Time",
-      "Processed By", // Add this column
+      "Processed By",
+      "Sessions Purchased",
+      "Sessions Attended",
+      "Sessions Remaining",
     ];
     const rows = sortedRecords.map((record) => [
       record.studentName,
@@ -177,7 +191,10 @@ const ReportsPage: React.FC = () => {
       record.status.charAt(0).toUpperCase() + record.status.slice(1),
       formatDate(record.date),
       record.time ? formatTime(record.time) : "",
-      record.processedBy || "System", // Add this field
+      record.processedBy || "System",
+      record.sessionsPurchased ?? "",
+      record.sessionsAttended ?? "",
+      record.sessionsRemaining ?? "",
     ]);
     const csvContent = [headers, ...rows]
       .map((row) =>
@@ -518,12 +535,23 @@ const ReportsPage: React.FC = () => {
                             </span>
                           </div>
                         </th>
+                        <th
+                          className="px-6 py-4 text-left font-semibold text-gray-700 cursor-pointer hover:bg-gray-100/50 transition-colors group"
+                          onClick={() => handleSort("sessionsRemaining")}
+                        >
+                          <div className="flex items-center space-x-2">
+                            <span>Sessions</span>
+                            <span className="text-gray-400 group-hover:text-gray-600 transition-colors">
+                              {getSortIcon("sessionsRemaining")}
+                            </span>
+                          </div>
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                       {attendanceRecords.length === 0 ? (
                         <tr>
-                          <td colSpan={5} className="px-6 py-12 text-center">
+                          <td colSpan={6} className="px-6 py-12 text-center">
                             <div className="flex flex-col items-center justify-center text-gray-500">
                               <svg
                                 className="w-16 h-16 mb-4 text-gray-300"
@@ -549,7 +577,7 @@ const ReportsPage: React.FC = () => {
                         </tr>
                       ) : paginatedRecords.length === 0 ? (
                         <tr>
-                          <td colSpan={5} className="px-6 py-12 text-center">
+                          <td colSpan={6} className="px-6 py-12 text-center">
                             <div className="flex flex-col items-center justify-center text-gray-500">
                               <svg
                                 className="w-16 h-16 mb-4 text-gray-300"
@@ -637,6 +665,28 @@ const ReportsPage: React.FC = () => {
                               <div className="text-sm text-gray-700">
                                 {record.processedBy || "System"}
                               </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              {record.sessionsRemaining != null ? (
+                                <div className="flex flex-col">
+                                  <span
+                                    className={`text-sm font-semibold ${
+                                      record.sessionsRemaining === 0
+                                        ? "text-red-600"
+                                        : record.sessionsRemaining <= 3
+                                        ? "text-amber-600"
+                                        : "text-green-600"
+                                    }`}
+                                  >
+                                    {record.sessionsRemaining} left
+                                  </span>
+                                  <div className="text-xs text-gray-400">
+                                    {record.sessionsAttended} / {record.sessionsPurchased} used
+                                  </div>
+                                </div>
+                              ) : (
+                                <span className="text-xs text-gray-400">—</span>
+                              )}
                             </td>
                           </tr>
                         ))

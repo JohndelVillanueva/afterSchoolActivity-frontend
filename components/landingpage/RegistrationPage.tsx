@@ -132,7 +132,7 @@ const RegisterPage = () => {
               <span className="logo-icon">🏆</span>
               <span className="logo-text">Westfields International School</span>
             </div>
-            <h2>Create Student Account</h2>
+            <h2>Create Account</h2>
             <p>Join our sports community</p>
           </div>
 

@@ -462,6 +462,80 @@ const ViewEditStudentModal: React.FC<ViewEditStudentModalProps> = ({
                 </div>
               </div>
 
+<<<<<<< HEAD
+=======
+              {/* Sessions Information */}
+              <div>
+                <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Sessions Information
+                </h4>
+                
+                {viewMode === "edit" && (
+                  <div className="mb-4 p-3 bg-blue-50 border border-blue-100/60 rounded-xl">
+                    <p className="text-xs text-blue-800 font-semibold mb-1 flex items-center gap-1">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      Session Calculation Guide
+                    </p>
+                    <div className="text-xs text-blue-700 space-y-1 ml-4">
+                      <p>Edit <strong>Sessions Purchased</strong>. Remaining sessions will adjust automatically on save.</p>
+                      <p className="opacity-75">New Remaining = Original Remaining + (New Purchased - Original Purchased)</p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Purchased */}
+                  <div className="p-4 bg-white border border-gray-200 rounded-xl flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow">
+                    {viewMode === "view" ? (
+                      <>
+                        <div className="text-3xl font-bold text-green-600 mb-1">
+                          {studentDetails.sessionsPurchased}
+                        </div>
+                        <div className="text-xs text-gray-500 font-medium uppercase tracking-wide">Purchased</div>
+                      </>
+                    ) : (
+                      <>
+                        <input
+                          type="number"
+                          name="sessionsPurchased"
+                          value={formData.sessionsPurchased}
+                          onChange={handleInputChange}
+                          className="text-3xl font-bold text-green-600 w-full text-center border-b-2 border-green-100 focus:border-green-500 focus:outline-none bg-transparent py-1 mb-1"
+                          min="0"
+                        />
+                        <div className="text-xs text-green-600 font-medium">Purchased (Edit)</div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Attended */}
+                  <div className="p-4 bg-white border border-gray-200 rounded-xl flex flex-col items-center justify-center text-center">
+                    <div className="text-3xl font-bold text-yellow-600 mb-1">
+                      {studentDetails.sessionsAttended}
+                    </div>
+                    <div className="text-xs text-gray-500 font-medium uppercase tracking-wide">Attended</div>
+                    <div className="text-[10px] text-gray-400 mt-1">Read-only</div>
+                  </div>
+
+                  {/* Remaining */}
+                  <div className="p-4 bg-white border border-gray-200 rounded-xl flex flex-col items-center justify-center text-center relative overflow-hidden">
+                    {viewMode === "edit" && (
+                      <div className="absolute top-0 right-0 p-1">
+                         <svg className="w-4 h-4 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                      </div>
+                    )}
+                    <div className="text-3xl font-bold text-blue-600 mb-1">
+                      {studentDetails.sessionsRemaining}
+                    </div>
+                    <div className="text-xs text-gray-500 font-medium uppercase tracking-wide">Remaining</div>
+                  </div>
+                </div>
+              </div>
+
+>>>>>>> 6aa694a16ac1b35574d71bb91925e7b55b8f433f
               {/* Medical Notes */}
               <div>
                 <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">

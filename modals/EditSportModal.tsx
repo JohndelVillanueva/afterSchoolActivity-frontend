@@ -106,14 +106,21 @@ const EditSportModal: React.FC<EditSportModalProps> = ({ show, onClose, sport, o
     setUpdating(true);
     
     try {
+<<<<<<< HEAD
+=======
+      // Format the data to match what your backend expects (removed rate)
+>>>>>>> 6aa694a16ac1b35574d71bb91925e7b55b8f433f
       const payload = {
         id: editedSport.id,
         name: editedSport.name,
         description: editedSport.description || '',
         coachName: editedSport.coachName || '',
         photo: editedSport.photo || '',
+<<<<<<< HEAD
         location: editedSport.location || '',
         rate: editedSport.rate ?? 0,
+=======
+>>>>>>> 6aa694a16ac1b35574d71bb91925e7b55b8f433f
       };
 
       console.log('[DEBUG] Sending update payload:', payload);

@@ -71,6 +71,7 @@ const SportPages = () => {
     setSidebarCollapsed(collapsed);
   }, []);
 
+<<<<<<< HEAD
   const filteredActivities = useMemo(() => {
     if (!search.trim()) return sportsActivities;
     const query = search.toLowerCase().trim();
@@ -84,6 +85,9 @@ const SportPages = () => {
       matches(sport.dayOfWeek)
     );
   }, [sportsActivities, search]);
+=======
+  const filteredActivities = useMemo(() => sportsActivities, [sportsActivities]);
+>>>>>>> 6aa694a16ac1b35574d71bb91925e7b55b8f433f
 
   const MobileTopBar = (
     <div className="md:hidden flex items-center bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-30">

@@ -144,7 +144,14 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({
                 <option value="">Choose activity</option>
                 {activities.map((activity: Activity) => (
                   <option key={activity.id} value={activity.id}>
+<<<<<<< HEAD
                     {activity.name}
+=======
+                    {activity.name} 
+                    {/* (
+                      {activity.dayOfWeek}, {formatTime(activity.startTime)} - {formatTime(activity.endTime)}
+                      ) */}
+>>>>>>> 6aa694a16ac1b35574d71bb91925e7b55b8f433f
                   </option>
                 ))}
               </select>

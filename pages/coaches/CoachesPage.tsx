@@ -454,7 +454,11 @@ const CoachesPage: React.FC = () => {
         />
       )}
 
+<<<<<<< HEAD
       <div className={`flex-1 bg-gradient-to-br from-gray-50 to-white min-h-screen transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'}`}>
+=======
+      <div className={`flex-1 min-h-screen transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'} flex flex-col`}>
+>>>>>>> 6aa694a16ac1b35574d71bb91925e7b55b8f433f
         {MobileTopBar}
 
         {/* Desktop Header */}

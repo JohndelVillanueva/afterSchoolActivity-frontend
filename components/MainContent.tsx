@@ -1,17 +1,140 @@
+<<<<<<< HEAD
 import React, { useCallback } from "react";
+=======
+import React, { memo, useCallback } from "react";
+>>>>>>> 6aa694a16ac1b35574d71bb91925e7b55b8f433f
 import { useNavigate } from "react-router-dom";
 import CreateSportModal from "../modals/CreateSportModal";
 import EditSportModal from "../modals/EditSportModal";
 import type { Activity } from "../src/types/types";
 import { API_BASE_URL } from "../src/types/types";
 
+<<<<<<< HEAD
 const FALLBACK_SPORT_IMAGE =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' fill='none'%3E%3Crect width='400' height='300' fill='%2366746f'/%3E%3Ccircle cx='200' cy='150' r='50' fill='%23ffffff' opacity='0.15'/%3E%3Ctext x='200' y='155' text-anchor='middle' fill='white' font-size='16' opacity='0.5' font-family='sans-serif'%3ENo Image%3C/text%3E%3C/svg%3E";
+=======
+// ✅ Import your actual image
+import defaultSportImage from "../src/assets/deh54s1-25929919-c63d-4834-ba80-c3a00fe2fbcc.png";  
+>>>>>>> 6aa694a16ac1b35574d71bb91925e7b55b8f433f
 
 const getSportImage = (sport: Activity | null): string => {
   if (sport?.photo) return `${API_BASE_URL}${sport.photo}`;
   return FALLBACK_SPORT_IMAGE;
 };
+
+const FALLBACK_SPORT_IMAGE =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' fill='none'%3E%3Crect width='400' height='300' fill='%2366746f'/%3E%3Ccircle cx='200' cy='150' r='50' fill='%23ffffff' opacity='0.15'/%3E%3Ctext x='200' y='155' text-anchor='middle' fill='white' font-size='16' opacity='0.5' font-family='sans-serif'%3ENo Image%3C/text%3E%3C/svg%3E";
+
+// Helper function to get a random gradient color based on sport name
+const getSportGradient = (name: string) => {
+  const gradients = [
+    "from-blue-500 to-blue-600",
+    "from-purple-500 to-purple-600",
+    "from-emerald-500 to-emerald-600",
+    "from-red-500 to-red-600",
+    "from-orange-500 to-orange-600",
+    "from-pink-500 to-pink-600",
+    "from-indigo-500 to-indigo-600",
+    "from-teal-500 to-teal-600",
+  ];
+  const index = name.length % gradients.length;
+  return gradients[index];
+};
+
+interface ActivityCardProps {
+  activity: Activity;
+  onOpen: (activity: Activity) => void;
+  onEdit: (e: React.MouseEvent, activity: Activity) => void;
+}
+
+const ActivityCard: React.FC<ActivityCardProps> = memo(({ activity, onOpen, onEdit }) => {
+  const gradient = getSportGradient(activity.name);
+
+  return (
+    <div
+      className="group relative bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden border border-gray-100 hover:border-gray-200 transform hover:-translate-y-1"
+      onClick={() => onOpen(activity)}
+    >
+      <button
+        onClick={(e) => onEdit(e, activity)}
+        className="absolute top-3 right-3 p-2 bg-white/90 hover:bg-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 z-10 shadow-md hover:shadow-lg backdrop-blur-sm"
+        aria-label={`Edit ${activity.name}`}
+        title="Edit sport"
+      >
+        <svg
+          className="w-4 h-4 text-gray-600 hover:text-blue-600 transition-colors"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+          />
+        </svg>
+      </button>
+
+      <div className="relative overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
+        <div className="aspect-[4/3] relative">
+          <img
+            src={getSportImage(activity)}
+            alt={activity.name}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            loading="lazy"
+            decoding="async"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.src = FALLBACK_SPORT_IMAGE;
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        </div>
+
+        <div className="absolute top-3 left-3">
+          <span className={`inline-flex items-center gap-1 px-2 py-1 bg-gradient-to-r ${gradient} text-white text-xs font-medium rounded-lg shadow-md`}>
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            Sport
+          </span>
+        </div>
+      </div>
+
+      <div className="p-4">
+        <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-1 group-hover:text-blue-600 transition-colors">
+          {activity.name}
+        </h3>
+
+        <p className="text-gray-500 text-sm mb-3 line-clamp-2 leading-relaxed">
+          {activity.description || "No description available"}
+        </p>
+
+        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-6 h-6 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </div>
+            <span className="text-xs text-gray-500 truncate">
+              {activity.coachName || "No coach assigned"}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1 text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <span className="text-xs font-medium">Details</span>
+            <svg className="w-3 h-3 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+ActivityCard.displayName = "ActivityCard";
 
 interface MainContentProps {
   setActiveCategory: React.Dispatch<React.SetStateAction<string>>;
@@ -49,8 +172,11 @@ const MainContent: React.FC<MainContentProps> = ({
   setShowEditModal,
   selectedSport,
   handleUpdateSport,
+<<<<<<< HEAD
   search = "",
   onSearchChange,
+=======
+>>>>>>> 6aa694a16ac1b35574d71bb91925e7b55b8f433f
 }) => {
   const navigate = useNavigate();
 
@@ -179,6 +305,7 @@ const MainContent: React.FC<MainContentProps> = ({
         </div>
       )}
 
+<<<<<<< HEAD
       {/* Activities List */}
       <main className="p-4 md:p-8 bg-gradient-to-br from-gray-50 to-white min-h-[60vh]">
         {filteredActivities.length > 0 ? (
@@ -299,6 +426,20 @@ const MainContent: React.FC<MainContentProps> = ({
                 )}
               </p>
             </div>
+=======
+      {/* Activities Grid */}
+      <main className="p-4 md:p-8 bg-gradient-to-br from-gray-50 to-white min-h-[60vh]">
+        {filteredActivities.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredActivities.map((activity) => (
+              <ActivityCard
+                key={activity.id}
+                activity={activity}
+                onOpen={handleActivityClick}
+                onEdit={handleEditClick}
+              />
+            ))}
+>>>>>>> 6aa694a16ac1b35574d71bb91925e7b55b8f433f
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-20 px-4">
@@ -317,6 +458,7 @@ const MainContent: React.FC<MainContentProps> = ({
                 />
               </svg>
             </div>
+<<<<<<< HEAD
             <h3 className="text-xl font-semibold text-gray-900 mb-2">No sports found</h3>
             <p className="text-gray-500 text-center mb-6">
               {search
@@ -344,6 +486,21 @@ const MainContent: React.FC<MainContentProps> = ({
                 Create New Sport
               </button>
             )}
+=======
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">No activities found</h3>
+            <p className="text-gray-500 text-center mb-6">
+              Get started by creating your first sport activity.
+            </p>
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-md hover:shadow-lg"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Create New Sport
+            </button>
+>>>>>>> 6aa694a16ac1b35574d71bb91925e7b55b8f433f
           </div>
         )}
       </main>
